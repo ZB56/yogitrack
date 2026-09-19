@@ -78,7 +78,7 @@
   <!-- 2. client-side validation (self call) -->
   <path class="call" d="M310 156 H352 V176 H316" marker-end="url(#solid)"/>
   <text class="msgm" x="360" y="162">validateForm(values)</text>
-  <text class="step" x="360" y="178">UC1 step 6, client half</text>
+  <text class="step" x="360" y="178">UC1 step 5, client half</text>
 
   <!-- 3. duplicate lookup -->
   <path class="call" d="M310 210 H555" marker-end="url(#solid)"/>
@@ -106,7 +106,7 @@
   <!-- 7. prompt -->
   <path class="ret" d="M300 388 H85" marker-end="url(#open)"/>
   <text class="retm" x="96" y="382">show &#8220;this name exists, add anyway?&#8221;</text>
-  <text class="step" x="96" y="404">UC1 step 3</text>
+  <text class="step" x="96" y="404">UC1 step 2a</text>
 
   <!-- 8. confirm -->
   <path class="call" d="M85 436 H300" marker-end="url(#solid)"/>
@@ -122,12 +122,12 @@
   <!-- 10. server-side validation (self call) -->
   <path class="call" d="M565 546 H607 V566 H571" marker-end="url(#solid)"/>
   <text class="msgm" x="615" y="552">instructor.validate()</text>
-  <text class="step" x="615" y="568">UC1 step 6, before any id is issued</text>
+  <text class="step" x="615" y="568">UC1 step 5, before any id is issued</text>
 
   <!-- 11. generate id -->
   <path class="call" d="M565 602 H805" marker-end="url(#solid)"/>
   <text class="msgm" x="576" y="596">generateId('instructor')</text>
-  <text class="step" x="576" y="618">UC1 step 4</text>
+  <text class="step" x="576" y="618">UC1 step 3</text>
 
   <!-- 12. atomic increment -->
   <path class="call" d="M815 642 H1045" marker-end="url(#solid)"/>
@@ -144,7 +144,7 @@
   <!-- 15. save -->
   <path class="call" d="M565 750 H1045" marker-end="url(#solid)"/>
   <text class="msgm" x="576" y="744">instructor.save()</text>
-  <text class="step" x="576" y="766">UC1 step 7</text>
+  <text class="step" x="576" y="766">UC1 steps 4 and 6</text>
 
   <!-- 16. saved doc -->
   <path class="ret" d="M1045 790 H565" marker-end="url(#open)"/>
@@ -153,7 +153,7 @@
   <!-- 17. welcome message -->
   <path class="call" d="M565 826 H805" marker-end="url(#solid)"/>
   <text class="msgm" x="576" y="820">sendMessage(instructor, welcome)</text>
-  <text class="step" x="576" y="842">UC1 step 8, routed by preferredContact</text>
+  <text class="step" x="576" y="842">UC1 step 7, routed by preferredContact</text>
 
   <!-- 18. notification record -->
   <path class="ret" d="M805 866 H565" marker-end="url(#open)"/>
@@ -166,7 +166,7 @@
   <!-- 20. confirmation to manager -->
   <path class="ret" d="M300 938 H85" marker-end="url(#open)"/>
   <text class="retm" x="96" y="932">confirmation, instructor id, message preview</text>
-  <text class="step" x="96" y="954">UC1 steps 7 and 8</text>
+  <text class="step" x="96" y="954">UC1 steps 6 and 7</text>
 
   <!-- ============ NOTE ============ -->
   <path d="M40 996 h600 l20 20 v52 H40 z" fill="#fdf4e3" stroke="#d8bc7f" stroke-width="1.2"/>

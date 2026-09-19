@@ -13,7 +13,7 @@ University of Oklahoma. Built on the MERN stack (MongoDB, Express, React, Node).
 |---|---|---|---|
 | UC1 | Add an instructor | 1 | **Complete** |
 | UC4 | Add a customer | 1 | **Complete** |
-| UC3 | Add a package | 1 | Carried to Part 2 |
+| UC3 | Add a package | 1 | **Complete** |
 | UC2 | Add a class | 2 | Not started |
 | UC5 | Record a sale | 2 | Not started |
 | UC6 | Record class attendance | 2 | Not started |
@@ -81,6 +81,13 @@ cp .env.example .env
 npm install
 npm run dev
 ```
+
+To load the studio's real price list (the seven packages from Fig. 2 of the
+requirements) so there is something to look at:
+```bash
+npm run seed:packages
+```
+It is safe to run more than once; existing packages are skipped.
 The API is then on <http://localhost:5001>. Check it with:
 ```bash
 curl localhost:5001/api/health
@@ -106,6 +113,9 @@ to Express.
 | GET | `/api/customers/check-name?firstName=&lastName=` | Duplicate-name check (UC4 step 2) |
 | GET | `/api/customers/:customerId` | One customer by readable ID (e.g. `C00001`) |
 | POST | `/api/customers` | Create a customer (UC4) |
+| GET | `/api/packages` | List all packages, newest first |
+| GET | `/api/packages/:packageId` | One package by readable ID (e.g. `P00001`) |
+| POST | `/api/packages` | Create a package (UC3) |
 
 Both `POST` endpoints answer **409 Conflict** with
 `requiresConfirmation: true` when a person of the same name already exists.

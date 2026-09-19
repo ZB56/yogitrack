@@ -17,7 +17,7 @@ export function checkCustomerName(firstName, lastName) {
 }
 
 /**
- * Create a customer (UC4 steps 4-8).
+ * Create a customer (UC4 steps 3-7).
  * @throws {ApiError} with requiresConfirmation=true on an unconfirmed duplicate
  */
 export function createCustomer(data) {

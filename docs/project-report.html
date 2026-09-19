@@ -63,10 +63,10 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
 <table><thead><tr><th>#</th><th>Use case</th><th>Status</th></tr></thead><tbody>
 <tr><td>UC1</td><td>Add an instructor</td><td><strong>Implemented end to end</strong></td></tr>
 <tr><td>UC4</td><td>Add a customer</td><td><strong>Implemented end to end</strong></td></tr>
-<tr><td>UC3</td><td>Add a package</td><td><strong>Not delivered in this increment</strong></td></tr>
+<tr><td>UC3</td><td>Add a package</td><td><strong>Implemented end to end</strong></td></tr>
 </tbody></table>
 <blockquote>
-<p><strong>Status note.</strong> This report describes only what is in the committed code. Two of the three planned use cases are complete; UC3 (Add a package) was not reached and is stated as such rather than glossed over. It moves to the front of the Part 2 queue. The grading criteria require at least two use cases for this increment, which UC1 and UC4 satisfy.</p>
+<p><strong>Status note.</strong> This report describes only what is in the committed code. All three use cases planned for this increment are complete; the grading criteria require at least two. What remains outstanding is listed plainly in section 12.</p>
 </blockquote>
 <p><strong>What Part 1 also establishes</strong>, and what Part 2 therefore does not have to re-solve: the request pipeline (routes → controllers → services → models), the atomic ID generator, the validation and error-handling strategy, the messaging abstraction, the responsive UI component set, and the deployment topology.</p>
 <h2 id="2-problem-statement-and-background">2. Problem statement and background</h2>
@@ -83,7 +83,7 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
     Customer ──┴──&gt; Sale ──────────┘
 </code></pre>
 <p>A class cannot be scheduled without an instructor. A sale cannot be recorded without both a customer and a package. Attendance needs all of them, and the reports aggregate everything.</p>
-<p>Part 1 therefore targets the three roots of the tree — instructor, customer and package. Two of the three were delivered; package moves to Part 2. This is not merely a convenient split. It means <strong>Part 2 is purely additive</strong>: no Part 1 entity has to be redesigned to make Part 2 work, because every Part 2 entity depends on Part 1 rather than the other way round.</p>
+<p>Part 1 therefore builds the three roots of the tree — instructor, customer and package — and all three are delivered. This is not merely a convenient split. It means <strong>Part 2 is purely additive</strong>: no Part 1 entity has to be redesigned to make Part 2 work, because every Part 2 entity depends on Part 1 rather than the other way round.</p>
 <h3 id="3-2-what-is-deliberately-out-of-scope-for-part-1">3.2 What is deliberately out of scope for Part 1</h3>
 <table><thead><tr><th>Excluded</th><th>Reason</th></tr></thead><tbody>
 <tr><td>Modify and delete</td><td>The written specification describes only &quot;Add&quot;. Deleting needs a referential-integrity rule first, and there are no classes or sales to orphan until Part 2 exists. See decision 9.</td></tr>
@@ -100,13 +100,16 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
 <table><thead><tr><th>Step</th><th>Specification</th><th>Implementation</th></tr></thead><tbody>
 <tr><td>1</td><td>Manager enters first and last name</td><td>React form, <code>AddInstructor.jsx</code></td></tr>
 <tr><td>2</td><td>System checks whether the name already exists</td><td><code>GET /api/instructors/check-name</code>, a case-insensitive exact match</td></tr>
-<tr><td>3</td><td>If it exists, prompt to confirm</td><td>Warning panel with &quot;Yes, add anyway&quot; / &quot;Cancel and edit&quot;; the server independently returns <code>409</code> with <code>requiresConfirmation</code></td></tr>
-<tr><td>4</td><td>System generates a new instructor ID</td><td><code>generateId(&#x27;instructor&#x27;)</code> → <code>I00001</code></td></tr>
-<tr><td>5</td><td>Manager enters remaining data and saves</td><td>Same form, one submit</td></tr>
-<tr><td>6</td><td>System validates and prompts on missing fields</td><td>Validated in the browser <em>and</em> by the Mongoose schema; errors are returned per field and shown beside the offending input</td></tr>
-<tr><td>7</td><td>System confirms the record is saved</td><td>Success panel showing the generated ID</td></tr>
-<tr><td>8</td><td>System sends a welcome message on the preferred channel</td><td><code>sendMessage()</code> routes by <code>preferredContact</code>; the exact message is displayed</td></tr>
+<tr><td>2a</td><td>If it exists, prompt to confirm</td><td>Warning panel with &quot;Yes, add anyway&quot; / &quot;Cancel and edit&quot;; the server independently returns <code>409</code> with <code>requiresConfirmation</code></td></tr>
+<tr><td>3</td><td>System generates a new instructor ID</td><td><code>generateId(&#x27;instructor&#x27;)</code> → <code>I00001</code></td></tr>
+<tr><td>4</td><td>Manager enters remaining data and saves</td><td>Same form, one submit</td></tr>
+<tr><td>5</td><td>System validates and prompts on missing fields</td><td>Validated in the browser <em>and</em> by the Mongoose schema; errors are returned per field and shown beside the offending input</td></tr>
+<tr><td>6</td><td>System confirms the record is saved</td><td>Success panel showing the generated ID</td></tr>
+<tr><td>7</td><td>System sends a welcome message on the preferred channel</td><td><code>sendMessage()</code> routes by <code>preferredContact</code>; the exact message is displayed</td></tr>
 </tbody></table>
+<blockquote>
+<p><strong>A note on step numbering.</strong> The course specification gives this flow as seven steps, with the duplicate-name prompt as a sub-flow of step 2 rather than a step of its own. Every step reference in this report and in the code comments uses that numbering, so any of them can be checked directly against the source document.</p>
+</blockquote>
 <p><strong>Note on IDs.</strong> An instructor ID begins with <strong>I</strong> and a customer ID with <strong>C</strong>, so the two can never be confused. This is a requirement of the specification, not a convention we invented.</p>
 <p><strong>Beyond the specification:</strong> a read-only instructor list, so that saved records are actually visible. See decision 9.</p>
 <h3 id="4-2-uc4-add-a-customer-original-use-case-4-implemented">4.2 UC4 — Add a customer <em>(original: Use case 4)</em> — implemented</h3>
@@ -124,8 +127,31 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
 <h3 id="4-3-uc3-add-a-package-original-use-case-3">4.3 UC3 — Add a package <em>(original: Use case 3)</em></h3>
 <p><strong>Actor:</strong> Manager <strong>Data captured:</strong> package name; category (General or Senior); number of classes (1, 4, 10, or unlimited); class type (General or Special); start date; end date; price.</p>
 <p><strong>Flow:</strong> the manager enters the data and the system generates a package ID and confirms. There is no branch in this use case, which is why it is scheduled last of the three — it exercises no pattern the other two have not already established.</p>
-<p><strong>Status: not delivered in Part 1.</strong> Of the three planned use cases this was scheduled last, precisely because it exercises no pattern the other two have not already established — it is a plain form with no branching flow. Time ran out before it was reached. It is the first item of Part 2 work.</p>
+<p><strong>Flow:</strong> the manager enters the data and the system generates a package ID and confirms. Two steps, no branch — which is why it was scheduled last of the three: it exercises no pattern the other two had not already established.</p>
+<p><strong>The studio&#x27;s actual price list</strong> (Fig. 2 of the requirements) is what the schema had to accommodate, and it is loaded by <code>npm run seed:packages</code>:</p>
+<table><thead><tr><th>Package</th><th>Category</th><th>Classes</th><th>Validity</th><th>Price</th></tr></thead><tbody>
+<tr><td>Single Class (Drop in)</td><td>General</td><td>1</td><td>1 month</td><td>$20</td></tr>
+<tr><td>4 Class Pass</td><td>General</td><td>4</td><td>1 month</td><td>$70</td></tr>
+<tr><td>10 Class Pass</td><td>General</td><td>10</td><td>3 months</td><td>$140</td></tr>
+<tr><td>3 Months Unlimited</td><td>General</td><td>Unlimited</td><td>3 months</td><td>$400</td></tr>
+<tr><td>4 Class Pass</td><td>Senior</td><td>4</td><td>1 month</td><td>$60</td></tr>
+<tr><td>10 Class Pass</td><td>Senior</td><td>10</td><td>3 months</td><td>$120</td></tr>
+<tr><td>3 Months Unlimited</td><td>Senior</td><td>Unlimited</td><td>3 months</td><td>$360</td></tr>
+</tbody></table>
+<p>Seeding is a development convenience, not part of the use case: the manager can add any package through the form. It exists so that demonstrating and testing the application does not require typing seven rows by hand, and it is idempotent, so running it twice is harmless.</p>
+<p>Note that &quot;Senior&quot; is a <strong>pricing category the manager chooses</strong>, not something the system derives. The price list defines a senior as 62 or older, but no use case asks for a date of birth, so no age is stored anywhere.</p>
 <p><strong>The interesting problem here is &quot;unlimited.&quot;</strong> A 3-month unlimited package has no number of classes, and a plain number cannot represent that honestly. The chosen representation is a boolean flag with date-based validity rather than a sentinel number; the reasoning, and the rejected alternative, are in decision 4.</p>
+<p>This shows up in the schema in a way worth pointing out. <code>numClasses</code> declares its <code>required</code> rule as a <strong>function</strong> rather than <code>true</code>:</p>
+<pre><code>numClasses: {
+  type: Number,
+  default: null,
+  required: [function () { return !this.unlimited; },
+             &#x27;Please choose how many classes this package includes.&#x27;],
+  ...
+}
+</code></pre>
+<p>Mongoose calls that function with the document as <code>this</code>, so the field is mandatory for a counted package and legitimately absent for an unlimited one. A plain <code>required: true</code> would have made the 3-month unlimited pass — one of the studio&#x27;s seven real products — impossible to save.</p>
+<p>Two further rules are enforced at the schema rather than trusted from the form: the class count must be one the studio actually sells (1, 4 or 10), and the end date must fall after the start date, because a package that expires before it begins can never be sold. The controller additionally forces <code>numClasses</code> to <code>null</code> whenever <code>unlimited</code> is true, so a contradictory request body cannot be stored in a state that later code could read two ways.</p>
 <h3 id="4-4-use-cases-deferred-to-part-2">4.4 Use cases deferred to Part 2</h3>
 <table><thead><tr><th>#</th><th>Use case</th><th>Principal challenge</th></tr></thead><tbody>
 <tr><td>UC2</td><td>Add a class</td><td>Detecting a schedule conflict and proposing alternatives. Needs a class duration, which the specification never states (decision 5).</td></tr>
@@ -542,7 +568,7 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
   <!-- 2. client-side validation (self call) -->
   <path class="call" d="M310 156 H352 V176 H316" marker-end="url(#solid)"/>
   <text class="msgm" x="360" y="162">validateForm(values)</text>
-  <text class="step" x="360" y="178">UC1 step 6, client half</text>
+  <text class="step" x="360" y="178">UC1 step 5, client half</text>
 
   <!-- 3. duplicate lookup -->
   <path class="call" d="M310 210 H555" marker-end="url(#solid)"/>
@@ -570,7 +596,7 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
   <!-- 7. prompt -->
   <path class="ret" d="M300 388 H85" marker-end="url(#open)"/>
   <text class="retm" x="96" y="382">show &#8220;this name exists, add anyway?&#8221;</text>
-  <text class="step" x="96" y="404">UC1 step 3</text>
+  <text class="step" x="96" y="404">UC1 step 2a</text>
 
   <!-- 8. confirm -->
   <path class="call" d="M85 436 H300" marker-end="url(#solid)"/>
@@ -586,12 +612,12 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
   <!-- 10. server-side validation (self call) -->
   <path class="call" d="M565 546 H607 V566 H571" marker-end="url(#solid)"/>
   <text class="msgm" x="615" y="552">instructor.validate()</text>
-  <text class="step" x="615" y="568">UC1 step 6, before any id is issued</text>
+  <text class="step" x="615" y="568">UC1 step 5, before any id is issued</text>
 
   <!-- 11. generate id -->
   <path class="call" d="M565 602 H805" marker-end="url(#solid)"/>
   <text class="msgm" x="576" y="596">generateId('instructor')</text>
-  <text class="step" x="576" y="618">UC1 step 4</text>
+  <text class="step" x="576" y="618">UC1 step 3</text>
 
   <!-- 12. atomic increment -->
   <path class="call" d="M815 642 H1045" marker-end="url(#solid)"/>
@@ -608,7 +634,7 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
   <!-- 15. save -->
   <path class="call" d="M565 750 H1045" marker-end="url(#solid)"/>
   <text class="msgm" x="576" y="744">instructor.save()</text>
-  <text class="step" x="576" y="766">UC1 step 7</text>
+  <text class="step" x="576" y="766">UC1 steps 4 and 6</text>
 
   <!-- 16. saved doc -->
   <path class="ret" d="M1045 790 H565" marker-end="url(#open)"/>
@@ -617,7 +643,7 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
   <!-- 17. welcome message -->
   <path class="call" d="M565 826 H805" marker-end="url(#solid)"/>
   <text class="msgm" x="576" y="820">sendMessage(instructor, welcome)</text>
-  <text class="step" x="576" y="842">UC1 step 8, routed by preferredContact</text>
+  <text class="step" x="576" y="842">UC1 step 7, routed by preferredContact</text>
 
   <!-- 18. notification record -->
   <path class="ret" d="M805 866 H565" marker-end="url(#open)"/>
@@ -630,7 +656,7 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
   <!-- 20. confirmation to manager -->
   <path class="ret" d="M300 938 H85" marker-end="url(#open)"/>
   <text class="retm" x="96" y="932">confirmation, instructor id, message preview</text>
-  <text class="step" x="96" y="954">UC1 steps 7 and 8</text>
+  <text class="step" x="96" y="954">UC1 steps 6 and 7</text>
 
   <!-- ============ NOTE ============ -->
   <path d="M40 996 h600 l20 20 v52 H40 z" fill="#fdf4e3" stroke="#d8bc7f" stroke-width="1.2"/>
@@ -954,13 +980,18 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
       Counter.js           the ID sequence
       Instructor.js        UC1
       Customer.js          UC4
+      Package.js           UC3
       personFields.js      the six fields UC1 and UC4 share
     routes/              URL → controller function
       instructorRoutes.js
       customerRoutes.js
+      packageRoutes.js
     controllers/         business rules
       instructorController.js
       customerController.js
+      packageController.js
+    scripts/
+      seedPackages.js      loads the studio&#x27;s real price list (dev convenience)
     services/
       idGenerator.js       atomic I/C/P ids
       messaging.js         confirmation messages (stubbed in Part 1)
@@ -976,6 +1007,8 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
       pages/             one per screen (thin wrappers over PersonForm for
                          the two add screens)
       index.css          design tokens and all styling
+  tools/
+    build-report.py      renders this report to a printable HTML file
   docs/                  specification, decisions, UML models, this report
 </code></pre>
 <p><strong>Commenting.</strong> Every file opens with a block explaining what it is, why it exists and how it connects to the others. Comments in the body explain <em>reasoning</em> rather than restating the code — why the routes are ordered as they are, why an error handler needs four parameters, why an effect&#x27;s dependency array is empty. Anything that differs from Java is called out where it appears.</p>
@@ -1007,7 +1040,7 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
 <p>Bootstrap or Tailwind would have been quicker to start. Hand-written CSS was chosen because every rule is one that can be explained and defended, the application is small enough that a framework would add more to learn than it saves, and the result has no dependency to keep up to date. The cost is that the components had to be built by hand; the benefit is that there is nothing in the interface that is not understood.</p>
 <h3 id="9-3-screens">9.3 Screens</h3>
 <blockquote>
-<p><strong>Screenshots to insert before submission.</strong> Capture each of the following at a desktop width and save into <code>docs/screenshots/</code>: 1. <code>home.png</code> — the landing page with the use-case tiles 2. <code>add-instructor-empty.png</code> — the blank Add Instructor form 3. <code>add-instructor-errors.png</code> — the form submitted empty, showing per-field errors 4. <code>add-instructor-duplicate.png</code> — the duplicate-name confirmation prompt 5. <code>add-instructor-success.png</code> — the success panel with the generated ID and the welcome message 6. <code>instructor-list.png</code> — the instructor list 7. <code>add-customer-success.png</code> — a saved customer, showing the opening balance 8. <code>customer-list.png</code> — the customer list with the class-balance column 9. <code>mobile.png</code> — any screen at 375px wide, showing the responsive layout</p>
+<p><strong>Screenshots to insert before submission.</strong> Capture each of the following at a desktop width and save into <code>docs/screenshots/</code>: 1. <code>home.png</code> — the landing page with the use-case tiles 2. <code>add-instructor-empty.png</code> — the blank Add Instructor form 3. <code>add-instructor-errors.png</code> — the form submitted empty, showing per-field errors 4. <code>add-instructor-duplicate.png</code> — the duplicate-name confirmation prompt 5. <code>add-instructor-success.png</code> — the success panel with the generated ID and the welcome message 6. <code>instructor-list.png</code> — the instructor list 7. <code>add-customer-success.png</code> — a saved customer, showing the opening balance 8. <code>customer-list.png</code> — the customer list with the class-balance column 9. <code>add-package.png</code> — the Add Package form, with Unlimited selected 10. <code>package-list.png</code> — the package list showing the studio&#x27;s seven real rates 11. <code>mobile.png</code> — any screen at 375px wide, showing the responsive layout</p>
 </blockquote>
 <h2 id="10-testing-and-verification">10. Testing and verification</h2>
 <p>No automated test suite is included in Part 1; verification was done by exercising the API directly and by driving the interface in a browser. Each case below was run and its result confirmed.</p>
@@ -1028,6 +1061,14 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
 <tr><td>POST a customer with <code>classBalance: 999</code></td><td>Ignored; stored value is 0</td><td>Pass</td></tr>
 <tr><td>Instructor and customer ID sequences</td><td>Independent (<code>I00001</code> and <code>C00001</code> coexist)</td><td>Pass</td></tr>
 <tr><td>UC1 regression after extracting the shared helper</td><td>Unchanged behaviour</td><td>Pass</td></tr>
+<tr><td>Seed the seven real packages</td><td><code>P00001</code>–<code>P00007</code> created at the right prices</td><td>Pass</td></tr>
+<tr><td>Re-run the seed</td><td>All seven skipped, nothing duplicated</td><td>Pass</td></tr>
+<tr><td>Unlimited package stored</td><td><code>unlimited: true</code>, <code>numClasses: null</code>, label &quot;Unlimited&quot;</td><td>Pass</td></tr>
+<tr><td>POST a package with <code>numClasses: 7</code></td><td><code>400</code>, count must be 1, 4 or 10</td><td>Pass</td></tr>
+<tr><td>POST an end date before the start date</td><td><code>400</code>, end must follow start</td><td>Pass</td></tr>
+<tr><td>POST a counted package with no count</td><td><code>400</code>, count required</td><td>Pass</td></tr>
+<tr><td>POST <code>unlimited: true</code> together with <code>numClasses: 10</code></td><td>Normalised to <code>null</code>; not stored both ways</td><td>Pass</td></tr>
+<tr><td>POST a negative price and invalid enums</td><td><code>400</code> naming all three fields</td><td>Pass</td></tr>
 </tbody></table>
 <h3 id="10-2-interface">10.2 Interface</h3>
 <table><thead><tr><th>Case</th><th>Expected</th><th>Result</th></tr></thead><tbody>
@@ -1041,6 +1082,9 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
 <tr><td>UC1 through the shared form after refactoring</td><td>Correct instructor wording, no balance line</td><td>Pass</td></tr>
 <tr><td>Customer list</td><td>Balance column present and correct</td><td>Pass</td></tr>
 <tr><td>Browser console across all screens</td><td>No errors or warnings</td><td>Pass</td></tr>
+<tr><td>Submit the empty package form</td><td>Seven field-level errors</td><td>Pass</td></tr>
+<tr><td>Add an unlimited Special package through the form</td><td>Saved as <code>P00009</code>, success panel reads &quot;Unlimited&quot;</td><td>Pass</td></tr>
+<tr><td>Package list</td><td>Reads like the printed price list, senior rates included</td><td>Pass</td></tr>
 </tbody></table>
 <h3 id="10-3-the-defect-this-found">10.3 The defect this found</h3>
 <p>The ID-generation ordering described in decision 15 was found by test case 7 above and fixed before the interface was built. It is recorded here because a report that lists only passes is not a useful account of testing.</p>
@@ -1054,25 +1098,20 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
 <h2 id="12-known-limitations-and-the-part-2-plan">12. Known limitations and the Part 2 plan</h2>
 <h3 id="12-1-honest-limitations-of-part-1">12.1 Honest limitations of Part 1</h3>
 <ul>
-<li>&lt;strong&gt;1.&lt;/strong&gt; <strong>UC3 (Add a package) was not delivered.</strong> Two of the three planned use
- cases are complete. UC3 is a plain form with no branching flow and no new
- pattern to establish, which is why it was scheduled last and why it is the
- cheapest thing to finish first in Part 2.
-</li>
-<li>&lt;strong&gt;2.&lt;/strong&gt; <strong>Messages are not delivered.</strong> They are generated, displayed and logged.
+<li>&lt;strong&gt;1.&lt;/strong&gt; <strong>Messages are not delivered.</strong> They are generated, displayed and logged.
  The stub reports <code>delivered: false</code>.
 </li>
-<li>&lt;strong&gt;3.&lt;/strong&gt; <strong>Records cannot be edited or deleted</strong> once created. Deliberate; see
+<li>&lt;strong&gt;2.&lt;/strong&gt; <strong>Records cannot be edited or deleted</strong> once created. Deliberate; see
  decision 9.
 </li>
-<li>&lt;strong&gt;4.&lt;/strong&gt; <strong>There is no authentication.</strong> Anyone who can reach the application can use
+<li>&lt;strong&gt;3.&lt;/strong&gt; <strong>There is no authentication.</strong> Anyone who can reach the application can use
  it. Deferred with decision 12, and it must be resolved before UC6, the first
  instructor-facing use case.
 </li>
-<li>&lt;strong&gt;5.&lt;/strong&gt; <strong>No automated tests.</strong> Verification was manual and is documented in
+<li>&lt;strong&gt;4.&lt;/strong&gt; <strong>No automated tests.</strong> Verification was manual and is documented in
  section 10.
 </li>
-<li>&lt;strong&gt;6.&lt;/strong&gt; <strong>Address is a single free-text field.</strong> If the UC7 reports ever need to
+<li>&lt;strong&gt;5.&lt;/strong&gt; <strong>Address is a single free-text field.</strong> If the UC7 reports ever need to
  group customers geographically, this needs revisiting first (decision 14).
 </li></ul>
 <h3 id="12-2-decisions-still-open">12.2 Decisions still open</h3>
@@ -1084,8 +1123,6 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
 </tbody></table>
 <h3 id="12-3-part-2-plan">12.3 Part 2 plan</h3>
 <ul>
-<li>&lt;strong&gt;0.&lt;/strong&gt; <strong>UC3 Add Package</strong> — carried over from Part 1; the first thing to finish.
-</li>
 <li>&lt;strong&gt;1.&lt;/strong&gt; UC2 Add Class — schedule-conflict detection and alternative suggestions.
 </li>
 <li>&lt;strong&gt;2.&lt;/strong&gt; UC5 Record Sale — validation against the package rate, balance update.
@@ -1114,6 +1151,9 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
 <tr><td><code>GET</code></td><td><code>/api/customers/check-name?firstName=&amp;lastName=</code></td><td>Duplicate check (UC4 step 2)</td><td><code>200</code> <code>{exists, count, matches}</code></td><td><code>400</code> if a name is missing</td></tr>
 <tr><td><code>GET</code></td><td><code>/api/customers/:customerId</code></td><td>One customer by readable ID</td><td><code>200</code></td><td><code>404</code></td></tr>
 <tr><td><code>POST</code></td><td><code>/api/customers</code></td><td>Create (UC4)</td><td><code>201</code> <code>{customer, notification}</code></td><td><code>400</code> per-field; <code>409</code> <code>requiresConfirmation</code></td></tr>
+<tr><td><code>GET</code></td><td><code>/api/packages</code></td><td>List all, newest first</td><td><code>200</code></td><td>—</td></tr>
+<tr><td><code>GET</code></td><td><code>/api/packages/:packageId</code></td><td>One package by readable ID</td><td><code>200</code></td><td><code>404</code></td></tr>
+<tr><td><code>POST</code></td><td><code>/api/packages</code></td><td>Create (UC3)</td><td><code>201</code> <code>{package}</code></td><td><code>400</code> per-field</td></tr>
 </tbody></table>
 <p><strong>The <code>409</code> contract.</strong> A <code>409</code> from either <code>POST</code> endpoint carrying <code>requiresConfirmation: true</code> does not mean the data is wrong. It means an instructor of that name already exists and the manager must confirm. Re-send the identical body with <code>confirmDuplicate: true</code> to proceed.</p>
 <h2 id="appendix-b-running-the-project">Appendix B — running the project</h2>
@@ -1126,6 +1166,9 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
 <h3 id="setup">Setup</h3>
 <pre><code>cp .env.example .env     # .env is git-ignored; the defaults suit local MongoDB
 npm install
+</code></pre>
+<h3 id="load-the-studio-s-price-list-optional">Load the studio&#x27;s price list (optional)</h3>
+<pre><code>npm run seed:packages    # inserts the seven packages from Fig. 2
 </code></pre>
 <h3 id="run">Run</h3>
 <pre><code>npm run dev:all          # Express on :5001 and the React dev server on :5173

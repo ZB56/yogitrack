@@ -46,7 +46,7 @@ export async function sendMessage(recipient, text) {
 }
 
 /**
- * Build the welcome message required by UC1 step 8 and UC4 step 8.
+ * Build the welcome message required by UC1 step 7 and UC4 step 7.
  *
  * @param {string} firstName
  * @param {string} id - the generated I##### or C##### id

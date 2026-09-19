@@ -44,13 +44,12 @@ refers to — together with the full technical architecture that Part 2 builds o
 |---|---|---|
 | UC1 | Add an instructor | **Implemented end to end** |
 | UC4 | Add a customer | **Implemented end to end** |
-| UC3 | Add a package | **Not delivered in this increment** |
+| UC3 | Add a package | **Implemented end to end** |
 
 > **Status note.** This report describes only what is in the committed code.
-> Two of the three planned use cases are complete; UC3 (Add a package) was not
-> reached and is stated as such rather than glossed over. It moves to the front
-> of the Part 2 queue. The grading criteria require at least two use cases for
-> this increment, which UC1 and UC4 satisfy.
+> All three use cases planned for this increment are complete; the grading
+> criteria require at least two. What remains outstanding is listed plainly in
+> section 12.
 
 **What Part 1 also establishes**, and what Part 2 therefore does not have to
 re-solve: the request pipeline (routes → controllers → services → models), the
@@ -104,11 +103,11 @@ A class cannot be scheduled without an instructor. A sale cannot be recorded
 without both a customer and a package. Attendance needs all of them, and the
 reports aggregate everything.
 
-Part 1 therefore targets the three roots of the tree — instructor, customer
-and package. Two of the three were delivered; package moves to Part 2. This is
-not merely a convenient split. It means **Part 2 is purely additive**: no Part
-1 entity has to be redesigned to make Part 2 work, because every Part 2 entity
-depends on Part 1 rather than the other way round.
+Part 1 therefore builds the three roots of the tree — instructor, customer and
+package — and all three are delivered. This is not merely a convenient split.
+It means **Part 2 is purely additive**: no Part 1 entity has to be redesigned
+to make Part 2 work, because every Part 2 entity depends on Part 1 rather than
+the other way round.
 
 ### 3.2 What is deliberately out of scope for Part 1
 
@@ -142,12 +141,18 @@ of communication (phone or email).
 |---|---|---|
 | 1 | Manager enters first and last name | React form, `AddInstructor.jsx` |
 | 2 | System checks whether the name already exists | `GET /api/instructors/check-name`, a case-insensitive exact match |
-| 3 | If it exists, prompt to confirm | Warning panel with "Yes, add anyway" / "Cancel and edit"; the server independently returns `409` with `requiresConfirmation` |
-| 4 | System generates a new instructor ID | `generateId('instructor')` → `I00001` |
-| 5 | Manager enters remaining data and saves | Same form, one submit |
-| 6 | System validates and prompts on missing fields | Validated in the browser *and* by the Mongoose schema; errors are returned per field and shown beside the offending input |
-| 7 | System confirms the record is saved | Success panel showing the generated ID |
-| 8 | System sends a welcome message on the preferred channel | `sendMessage()` routes by `preferredContact`; the exact message is displayed |
+| 2a | If it exists, prompt to confirm | Warning panel with "Yes, add anyway" / "Cancel and edit"; the server independently returns `409` with `requiresConfirmation` |
+| 3 | System generates a new instructor ID | `generateId('instructor')` → `I00001` |
+| 4 | Manager enters remaining data and saves | Same form, one submit |
+| 5 | System validates and prompts on missing fields | Validated in the browser *and* by the Mongoose schema; errors are returned per field and shown beside the offending input |
+| 6 | System confirms the record is saved | Success panel showing the generated ID |
+| 7 | System sends a welcome message on the preferred channel | `sendMessage()` routes by `preferredContact`; the exact message is displayed |
+
+> **A note on step numbering.** The course specification gives this flow as
+> seven steps, with the duplicate-name prompt as a sub-flow of step 2 rather
+> than a step of its own. Every step reference in this report and in the code
+> comments uses that numbering, so any of them can be checked directly against
+> the source document.
 
 **Note on IDs.** An instructor ID begins with **I** and a customer ID with
 **C**, so the two can never be confused. This is a requirement of the
@@ -205,16 +210,62 @@ confirms. There is no branch in this use case, which is why it is scheduled
 last of the three — it exercises no pattern the other two have not already
 established.
 
-**Status: not delivered in Part 1.** Of the three planned use cases this was
-scheduled last, precisely because it exercises no pattern the other two have
-not already established — it is a plain form with no branching flow. Time ran
-out before it was reached. It is the first item of Part 2 work.
+**Flow:** the manager enters the data and the system generates a package ID
+and confirms. Two steps, no branch — which is why it was scheduled last of the
+three: it exercises no pattern the other two had not already established.
+
+**The studio's actual price list** (Fig. 2 of the requirements) is what the
+schema had to accommodate, and it is loaded by `npm run seed:packages`:
+
+| Package | Category | Classes | Validity | Price |
+|---|---|---|---|---|
+| Single Class (Drop in) | General | 1 | 1 month | $20 |
+| 4 Class Pass | General | 4 | 1 month | $70 |
+| 10 Class Pass | General | 10 | 3 months | $140 |
+| 3 Months Unlimited | General | Unlimited | 3 months | $400 |
+| 4 Class Pass | Senior | 4 | 1 month | $60 |
+| 10 Class Pass | Senior | 10 | 3 months | $120 |
+| 3 Months Unlimited | Senior | Unlimited | 3 months | $360 |
+
+Seeding is a development convenience, not part of the use case: the manager
+can add any package through the form. It exists so that demonstrating and
+testing the application does not require typing seven rows by hand, and it is
+idempotent, so running it twice is harmless.
+
+Note that "Senior" is a **pricing category the manager chooses**, not something
+the system derives. The price list defines a senior as 62 or older, but no use
+case asks for a date of birth, so no age is stored anywhere.
 
 **The interesting problem here is "unlimited."** A 3-month unlimited package
 has no number of classes, and a plain number cannot represent that honestly.
 The chosen representation is a boolean flag with date-based validity rather
 than a sentinel number; the reasoning, and the rejected alternative, are in
 decision 4.
+
+This shows up in the schema in a way worth pointing out. `numClasses` declares
+its `required` rule as a **function** rather than `true`:
+
+```js
+numClasses: {
+  type: Number,
+  default: null,
+  required: [function () { return !this.unlimited; },
+             'Please choose how many classes this package includes.'],
+  ...
+}
+```
+
+Mongoose calls that function with the document as `this`, so the field is
+mandatory for a counted package and legitimately absent for an unlimited one.
+A plain `required: true` would have made the 3-month unlimited pass — one of
+the studio's seven real products — impossible to save.
+
+Two further rules are enforced at the schema rather than trusted from the
+form: the class count must be one the studio actually sells (1, 4 or 10), and
+the end date must fall after the start date, because a package that expires
+before it begins can never be sold. The controller additionally forces
+`numClasses` to `null` whenever `unlimited` is true, so a contradictory
+request body cannot be stored in a state that later code could read two ways.
 
 ### 4.4 Use cases deferred to Part 2
 
@@ -474,13 +525,18 @@ yogitrack/
       Counter.js           the ID sequence
       Instructor.js        UC1
       Customer.js          UC4
+      Package.js           UC3
       personFields.js      the six fields UC1 and UC4 share
     routes/              URL → controller function
       instructorRoutes.js
       customerRoutes.js
+      packageRoutes.js
     controllers/         business rules
       instructorController.js
       customerController.js
+      packageController.js
+    scripts/
+      seedPackages.js      loads the studio's real price list (dev convenience)
     services/
       idGenerator.js       atomic I/C/P ids
       messaging.js         confirmation messages (stubbed in Part 1)
@@ -496,6 +552,8 @@ yogitrack/
       pages/             one per screen (thin wrappers over PersonForm for
                          the two add screens)
       index.css          design tokens and all styling
+  tools/
+    build-report.py      renders this report to a printable HTML file
   docs/                  specification, decisions, UML models, this report
 ```
 
@@ -549,7 +607,9 @@ the interface that is not understood.
 > 6. `instructor-list.png` — the instructor list
 > 7. `add-customer-success.png` — a saved customer, showing the opening balance
 > 8. `customer-list.png` — the customer list with the class-balance column
-> 9. `mobile.png` — any screen at 375px wide, showing the responsive layout
+> 9. `add-package.png` — the Add Package form, with Unlimited selected
+> 10. `package-list.png` — the package list showing the studio's seven real rates
+> 11. `mobile.png` — any screen at 375px wide, showing the responsive layout
 
 ---
 
@@ -578,6 +638,14 @@ case below was run and its result confirmed.
 | POST a customer with `classBalance: 999` | Ignored; stored value is 0 | Pass |
 | Instructor and customer ID sequences | Independent (`I00001` and `C00001` coexist) | Pass |
 | UC1 regression after extracting the shared helper | Unchanged behaviour | Pass |
+| Seed the seven real packages | `P00001`–`P00007` created at the right prices | Pass |
+| Re-run the seed | All seven skipped, nothing duplicated | Pass |
+| Unlimited package stored | `unlimited: true`, `numClasses: null`, label "Unlimited" | Pass |
+| POST a package with `numClasses: 7` | `400`, count must be 1, 4 or 10 | Pass |
+| POST an end date before the start date | `400`, end must follow start | Pass |
+| POST a counted package with no count | `400`, count required | Pass |
+| POST `unlimited: true` together with `numClasses: 10` | Normalised to `null`; not stored both ways | Pass |
+| POST a negative price and invalid enums | `400` naming all three fields | Pass |
 
 ### 10.2 Interface
 
@@ -593,6 +661,9 @@ case below was run and its result confirmed.
 | UC1 through the shared form after refactoring | Correct instructor wording, no balance line | Pass |
 | Customer list | Balance column present and correct | Pass |
 | Browser console across all screens | No errors or warnings | Pass |
+| Submit the empty package form | Seven field-level errors | Pass |
+| Add an unlimited Special package through the form | Saved as `P00009`, success panel reads "Unlimited" | Pass |
+| Package list | Reads like the printed price list, senior rates included | Pass |
 
 ### 10.3 The defect this found
 
@@ -632,20 +703,16 @@ supplies `PORT` and the Atlas connection string is set as a Heroku config var.
 
 ### 12.1 Honest limitations of Part 1
 
-1. **UC3 (Add a package) was not delivered.** Two of the three planned use
-   cases are complete. UC3 is a plain form with no branching flow and no new
-   pattern to establish, which is why it was scheduled last and why it is the
-   cheapest thing to finish first in Part 2.
-2. **Messages are not delivered.** They are generated, displayed and logged.
+1. **Messages are not delivered.** They are generated, displayed and logged.
    The stub reports `delivered: false`.
-3. **Records cannot be edited or deleted** once created. Deliberate; see
+2. **Records cannot be edited or deleted** once created. Deliberate; see
    decision 9.
-4. **There is no authentication.** Anyone who can reach the application can use
+3. **There is no authentication.** Anyone who can reach the application can use
    it. Deferred with decision 12, and it must be resolved before UC6, the first
    instructor-facing use case.
-5. **No automated tests.** Verification was manual and is documented in
+4. **No automated tests.** Verification was manual and is documented in
    section 10.
-6. **Address is a single free-text field.** If the UC7 reports ever need to
+5. **Address is a single free-text field.** If the UC7 reports ever need to
    group customers geographically, this needs revisiting first (decision 14).
 
 ### 12.2 Decisions still open
@@ -659,7 +726,6 @@ supplies `PORT` and the Atlas connection string is set as a Heroku config var.
 
 ### 12.3 Part 2 plan
 
-0. **UC3 Add Package** — carried over from Part 1; the first thing to finish.
 1. UC2 Add Class — schedule-conflict detection and alternative suggestions.
 2. UC5 Record Sale — validation against the package rate, balance update.
 3. UC6 Record Attendance — instructor view, schedule-mismatch warning,
@@ -688,6 +754,9 @@ route.
 | `GET` | `/api/customers/check-name?firstName=&lastName=` | Duplicate check (UC4 step 2) | `200` `{exists, count, matches}` | `400` if a name is missing |
 | `GET` | `/api/customers/:customerId` | One customer by readable ID | `200` | `404` |
 | `POST` | `/api/customers` | Create (UC4) | `201` `{customer, notification}` | `400` per-field; `409` `requiresConfirmation` |
+| `GET` | `/api/packages` | List all, newest first | `200` | — |
+| `GET` | `/api/packages/:packageId` | One package by readable ID | `200` | `404` |
+| `POST` | `/api/packages` | Create (UC3) | `201` `{package}` | `400` per-field |
 
 **The `409` contract.** A `409` from either `POST` endpoint carrying
 `requiresConfirmation: true` does not mean the data is wrong. It means an
@@ -706,6 +775,11 @@ the identical body with `confirmDuplicate: true` to proceed.
 ```bash
 cp .env.example .env     # .env is git-ignored; the defaults suit local MongoDB
 npm install
+```
+
+### Load the studio's price list (optional)
+```bash
+npm run seed:packages    # inserts the seven packages from Fig. 2
 ```
 
 ### Run

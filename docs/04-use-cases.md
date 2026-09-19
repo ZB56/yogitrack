@@ -13,17 +13,18 @@ renumbered 1–7 here. Original labels are shown in parentheses.
 - Email
 - Preferred mode of communication (phone or email)
 
-**Basic flow**
+**Basic flow** (numbered as in the course specification: the duplicate-name
+prompt is a sub-flow of step 2, not a step of its own)
 1. The manager selects the option to create a new instructor and enters their
    first and last name.
 2. YogiTrack checks and confirms that the instructor name does not already exist.
-3. If the instructor name already exists, YogiTrack prompts to confirm, as there
-   may be more than one instructor with the same name.
-4. YogiTrack generates a new instructor ID.
-5. The manager enters the rest of the demographic data and saves.
-6. YogiTrack validates the data and prompts if any required fields are missing.
-7. YogiTrack confirms the record has been saved.
-8. YogiTrack sends a confirmation message to the instructor on the preferred
+   - **2a.** If the instructor name already exists, YogiTrack prompts to
+     confirm, as there may be more than one instructor with the same name.
+3. YogiTrack generates a new instructor ID.
+4. The manager enters the rest of the demographic data and saves.
+5. YogiTrack validates the data and prompts if any required fields are missing.
+6. YogiTrack confirms the record has been saved.
+7. YogiTrack sends a confirmation message to the instructor on the preferred
    mode of communication: "Welcome to Yoga'Hom! ... Your instructor id is I00123."
 
 Note: the first letter of an instructor ID is **I**, to differentiate from a
@@ -77,17 +78,17 @@ customer ID, which starts with **C**.
 - Preferred mode of communication (phone or email)
 - Class balance (initial value 0)
 
-**Basic flow**
+**Basic flow** (same seven steps as UC1)
 1. The manager chooses the option to create a new customer and enters the first
    and last name.
 2. YogiTrack checks and confirms that the customer name does not already exist.
-3. If the name already exists, YogiTrack prompts to confirm, as there may be
-   more than one customer with the same name.
-4. YogiTrack generates a new customer ID.
-5. The manager enters the rest of the data and saves.
-6. YogiTrack validates the data and prompts if any required fields are missing.
-7. YogiTrack confirms the record has been saved.
-8. YogiTrack sends a confirmation message to the customer on their preferred
+   - **2a.** If the name already exists, YogiTrack prompts to confirm, as there
+     may be more than one customer with the same name.
+3. YogiTrack generates a new customer ID.
+4. The manager enters the rest of the data and saves.
+5. YogiTrack validates the data and prompts if any required fields are missing.
+6. YogiTrack confirms the record has been saved.
+7. YogiTrack sends a confirmation message to the customer on their preferred
    mode of communication: "Welcome to Yoga'Hom! ... Your customer id is C00123."
 
 Note: the first letter of a customer ID is **C**.

@@ -28,7 +28,7 @@ const router = express.Router();
 router.get('/check-name', checkInstructorName);
 
 // GET  /api/instructors     list all instructors
-// POST /api/instructors     create one (UC1 steps 4-8)
+// POST /api/instructors     create one (UC1 steps 3-7)
 router.route('/').get(listInstructors).post(createInstructor);
 
 // GET /api/instructors/I00001   one instructor by their readable ID

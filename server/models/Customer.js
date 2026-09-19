@@ -33,7 +33,7 @@ const customerSchema = new mongoose.Schema(
      * sale) increases it when a package is bought, and UC6 (record
      * attendance) decreases it on check-in.
      *
-     * There is deliberately NO `min: 0` here. UC6 step 8 requires that an
+     * There is deliberately NO `min: 0` here. UC6 requires that an
      * instructor be allowed to check in a customer who has run out, saving a
      * negative balance to be resolved later. A minimum would make that
      * legitimate case impossible.

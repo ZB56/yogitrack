@@ -18,7 +18,7 @@ import { sendMessage, welcomeMessage } from '../services/messaging.js';
 import { buildNameQuery } from '../utils/nameLookup.js';
 
 /**
- * Find customers already recorded under a given name (UC4 steps 2-3).
+ * Find customers already recorded under a given name (UC4 step 2 and its sub-flow).
  * GET /api/customers/check-name?firstName=Sam&lastName=Ray
  */
 export async function checkCustomerName(req, res) {
@@ -43,7 +43,7 @@ export async function checkCustomerName(req, res) {
 }
 
 /**
- * Create a customer. UC4 steps 4-8.
+ * Create a customer. UC4 steps 3-7.
  *
  * POST /api/customers
  * Body: firstName, lastName, address, phone, email, preferredContact,
@@ -60,7 +60,7 @@ export async function createCustomer(req, res) {
     confirmDuplicate = false,
   } = req.body;
 
-  // UC4 step 3. Enforced here as well as in the UI, because a request can
+  // UC4 step 2a (the duplicate prompt). Enforced here as well as in the UI, because a request can
   // reach this endpoint without having gone through the form.
   if (!confirmDuplicate && firstName && lastName) {
     const duplicates = await Customer.countDocuments(
@@ -95,17 +95,17 @@ export async function createCustomer(req, res) {
     preferredContact,
   });
 
-  // UC4 step 6: validate before an ID is issued, so that a rejected form
+  // UC4 step 5: validate before an ID is issued, so that a rejected form
   // never consumes a counter number. See design decision 15.
   await customer.validate({ pathsToSkip: ['customerId'] });
 
-  // UC4 step 4.
+  // UC4 step 3.
   customer.customerId = await generateId('customer');
 
-  // UC4 step 7.
+  // UC4 steps 4 and 6.
   await customer.save();
 
-  // UC4 step 8: welcome message on the customer's preferred channel.
+  // UC4 step 7: welcome message on the customer's preferred channel.
   const notification = await sendMessage(
     customer,
     welcomeMessage(customer.firstName, customer.customerId, 'customer')

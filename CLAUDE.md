@@ -39,15 +39,16 @@ attendance, and reports. It must be built on the **MERN stack**.
 - VSCode as the editor
 
 ## Plan
-- **Part 1 (due Sunday, Week 4, 11:59 pm CT):** Add Instructor (UC1) and
-  Add Customer (UC4) are **done**. Add Package (UC3) was not reached and has
-  moved to the front of Part 2. Report and UML models are written
-  (`docs/11-project-report.md`, `docs/10-uml-models.md`). Deployment files are
-  committed (Procfile, app.json, .github/workflows/ci.yml) but the GitHub,
-  Atlas and Heroku accounts are not yet created.
-- **Part 2 (due Friday, Week 8, 11:59 pm CT):** UC3 first, then Add Class (UC2),
-  Record Sale (UC5), Record Attendance (UC6), Reports (UC7). GitHub repo,
-  Heroku deploy, CI/CD pipeline, updated report.
+- **Part 1 (due Sunday, Week 4, 11:59 pm CT):** all three use cases are
+  **done** — Add Instructor (UC1), Add Customer (UC4), Add Package (UC3).
+  Report and UML models are written (`docs/11-project-report.md`,
+  `docs/10-uml-models.md`). Deployment files are committed (Procfile,
+  app.json, .github/workflows/ci.yml) and the production build is verified
+  locally, but the GitHub, Atlas and Heroku accounts are not yet created.
+  Screenshots for report section 9.3 are still to be captured.
+- **Part 2 (due Friday, Week 8, 11:59 pm CT):** Add Class (UC2), Record Sale
+  (UC5), Record Attendance (UC6), Reports (UC7), plus modify/delete for the
+  Part 1 entities and real message delivery.
 
 See `docs/05-build-plan.md`, `docs/06-data-model.md`, and
 `docs/07-design-decisions.md` for detail. Decisions 1-4, 6-9 and 13-15 are
@@ -61,6 +62,12 @@ repo; the start command is in the README.
 The report is built with `python3 tools/build-report.py`, which regenerates
 `docs/project-report.html` from the Markdown source. Re-run it after editing
 the report.
+
+Step numbers in code comments and the report follow the COURSE specification's
+numbering (UC1/UC4 are seven steps, with the duplicate-name prompt as sub-step
+2a). Do not renumber them; a grader may check them against the source.
+
+`npm run seed:packages` loads the studio's seven real packages from Fig. 2.
 
 ## Structure and scope notes
 - The course prescribes no folder structure and no starter code. Follow

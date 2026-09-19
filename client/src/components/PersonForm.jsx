@@ -53,7 +53,7 @@ const PHONE_PATTERN = /^\+?1?[\s.-]?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
- * Check the form before sending it (UC1/UC4 step 6, client half).
+ * Check the form before sending it (UC1/UC4 step 5, client half).
  * @returns {object} field name -> message; empty when the form is valid
  */
 function validateForm(values) {
@@ -114,9 +114,9 @@ export default function PersonForm({
   // contradict each other (saving and saved at once); one string cannot.
   const [status, setStatus] = useState('idle'); // idle | checking | saving
 
-  const [duplicatePrompt, setDuplicatePrompt] = useState(null); // step 3
+  const [duplicatePrompt, setDuplicatePrompt] = useState(null); // step 2a
   const [submitError, setSubmitError] = useState(null);
-  const [result, setResult] = useState(null); // steps 7-8, on success
+  const [result, setResult] = useState(null); // steps 6-7, on success
 
   /**
    * Runs on every keystroke. `event.target.name` matches the key in `values`,
@@ -141,7 +141,7 @@ export default function PersonForm({
   }
 
   /**
-   * Send the record to the server (steps 4-8).
+   * Send the record to the server (steps 3-7).
    * @param {boolean} confirmDuplicate - true once the prompt has been answered
    */
   async function save(confirmDuplicate) {
@@ -160,7 +160,7 @@ export default function PersonForm({
         // The server's own duplicate guard. Show the prompt, not an error.
         setDuplicatePrompt(error.message);
       } else if (error.fields) {
-        // Per-field messages from the Mongoose schema (step 6).
+        // Per-field messages from the Mongoose schema (step 5).
         setErrors(error.fields);
         setSubmitError('Please correct the highlighted fields.');
       } else {
@@ -196,7 +196,7 @@ export default function PersonForm({
       );
 
       if (check.exists) {
-        // Step 3: do not save yet. Two people really can share a name, so
+        // Step 2a: do not save yet. Two people really can share a name, so
         // this is a question rather than a rejection.
         setStatus('idle');
         setDuplicatePrompt(
@@ -227,7 +227,7 @@ export default function PersonForm({
         <p>{intro}</p>
       </div>
 
-      {/* Steps 7-8: confirmation, the generated id, and the message. */}
+      {/* Steps 6-7: confirmation, the generated id, and the message. */}
       {result && (
         <Alert variant="success" title={`${noun === 'instructor' ? 'Instructor' : 'Customer'} saved`}>
           <p>
@@ -250,7 +250,7 @@ export default function PersonForm({
         </Alert>
       )}
 
-      {/* Step 3: the duplicate-name question. */}
+      {/* Step 2a: the duplicate-name question. */}
       {duplicatePrompt && (
         <Alert variant="warning" title="This name already exists">
           <p>{duplicatePrompt}</p>

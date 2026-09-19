@@ -25,7 +25,7 @@ export function checkInstructorName(firstName, lastName) {
 }
 
 /**
- * Create an instructor (UC1 steps 4-8).
+ * Create an instructor (UC1 steps 3-7).
  *
  * @param {object} data - the form values
  * @param {boolean} [data.confirmDuplicate] - true once the manager has
