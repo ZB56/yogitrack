@@ -1,0 +1,90 @@
+# Continuous integration for YogiTrack.
+#
+# Runs on every push and every pull request to main. The job installs both the
+# server and client dependencies, builds the React app, and boots the server
+# against a real MongoDB to confirm it actually starts and answers.
+#
+# The point is that a broken commit is caught here rather than on Heroku, so
+# main stays in a releasable state. Deployment itself is configured in Heroku
+# (Deploy -> GitHub -> "Wait for CI to pass before deploy"), which is why this
+# file builds and verifies but does not push.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-verify:
+    runs-on: ubuntu-latest
+
+    # A throwaway MongoDB for the boot check, so the test is a real connection
+    # rather than a mock.
+    services:
+      mongodb:
+        image: mongo:8
+        ports:
+          - 27017:27017
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install server dependencies
+        run: npm ci
+
+      - name: Install client dependencies
+        run: npm ci --prefix client
+
+      - name: Build the React app
+        run: npm run build --prefix client
+
+      - name: Start the server and check it responds
+        env:
+          MONGODB_URI: mongodb://127.0.0.1:27017/yogitrack_ci
+          PORT: 5001
+        run: |
+          node server/server.js &
+          SERVER_PID=$!
+
+          # Poll rather than sleeping a fixed time: faster when the server is
+          # ready quickly, and it still fails cleanly if it never comes up.
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:5001/api/health > /dev/null; then
+              echo "Server is up."
+              break
+            fi
+            if [ "$i" = "30" ]; then
+              echo "Server did not start within 30 seconds."
+              kill $SERVER_PID 2>/dev/null || true
+              exit 1
+            fi
+            sleep 1
+          done
+
+          echo "Checking the UC1 and UC4 endpoints respond..."
+          curl -sf http://localhost:5001/api/instructors > /dev/null
+          curl -sf http://localhost:5001/api/customers > /dev/null
+
+          echo "Checking that validation rejects a bad record..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST http://localhost:5001/api/instructors \
+            -H 'Content-Type: application/json' \
+            -d '{"firstName":"NoOtherFields"}')
+          if [ "$STATUS" != "400" ]; then
+            echo "Expected 400 from an invalid create, got $STATUS"
+            kill $SERVER_PID 2>/dev/null || true
+            exit 1
+          fi
+
+          echo "All checks passed."
+          kill $SERVER_PID 2>/dev/null || true

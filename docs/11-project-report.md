@@ -42,14 +42,15 @@ refers to — together with the full technical architecture that Part 2 builds o
 
 | # | Use case | Status |
 |---|---|---|
-| UC1 | Add an instructor | Implemented end to end |
-| UC4 | Add a customer | *(see status note below)* |
-| UC3 | Add a package | *(see status note below)* |
+| UC1 | Add an instructor | **Implemented end to end** |
+| UC4 | Add a customer | **Implemented end to end** |
+| UC3 | Add a package | **Not delivered in this increment** |
 
-> **Status note.** This report is written against the code in the repository at
-> the time of submission. Section 4 marks each use case with its actual state.
-> Nothing in this report describes functionality that is not in the committed
-> code.
+> **Status note.** This report describes only what is in the committed code.
+> Two of the three planned use cases are complete; UC3 (Add a package) was not
+> reached and is stated as such rather than glossed over. It moves to the front
+> of the Part 2 queue. The grading criteria require at least two use cases for
+> this increment, which UC1 and UC4 satisfy.
 
 **What Part 1 also establishes**, and what Part 2 therefore does not have to
 re-solve: the request pipeline (routes → controllers → services → models), the
@@ -103,10 +104,11 @@ A class cannot be scheduled without an instructor. A sale cannot be recorded
 without both a customer and a package. Attendance needs all of them, and the
 reports aggregate everything.
 
-Part 1 therefore builds the three roots of the tree — instructor, customer and
-package. This is not merely a convenient split. It means **Part 2 is purely
-additive**: no Part 1 entity has to be redesigned to make Part 2 work, because
-every Part 2 entity depends on Part 1 rather than the other way round.
+Part 1 therefore targets the three roots of the tree — instructor, customer
+and package. Two of the three were delivered; package moves to Part 2. This is
+not merely a convenient split. It means **Part 2 is purely additive**: no Part
+1 entity has to be redesigned to make Part 2 work, because every Part 2 entity
+depends on Part 1 rather than the other way round.
 
 ### 3.2 What is deliberately out of scope for Part 1
 
@@ -154,18 +156,42 @@ specification, not a convention we invented.
 **Beyond the specification:** a read-only instructor list, so that saved
 records are actually visible. See decision 9.
 
-### 4.2 UC4 — Add a customer *(original: Use case 4)*
+### 4.2 UC4 — Add a customer *(original: Use case 4)* — implemented
 
 Identical in shape to UC1 — same six demographic fields, same duplicate-name
 check, same generated ID (prefixed **C**), same welcome message — with one
 additional field: **class balance**, which starts at 0 and is later changed by
 UC5 (a sale increases it) and UC6 (attendance decreases it).
 
-Because the two use cases are so nearly the same, the shared parts are written
-once and reused: `personFields()` defines the six common fields for both
-Mongoose schemas, and the `FormField` / `RadioGroup` React components are
-shared by both forms. This is the reason UC1 was built first and completely —
-it established a pattern that UC4 follows rather than reinvents.
+Because the two use cases are so nearly the same, the second was built by
+**extracting what they share rather than copying it**:
+
+| Shared thing | Where it lives | Used by |
+|---|---|---|
+| The six demographic fields and their validation | `server/models/personFields.js` | Both schemas |
+| The case-insensitive, anchored name match | `server/utils/nameLookup.js` | Both duplicate checks |
+| The whole add-a-person form | `client/src/components/PersonForm.jsx` | Both pages |
+| ID generation and messaging | `server/services/` | Both controllers |
+
+`AddInstructor.jsx` and `AddCustomer.jsx` are now thin wrappers that supply
+only what genuinely differs: the wording, which API functions to call, and
+where the "view all" link points. Copied code drifts — a fix applied to one
+copy silently fails to reach the other — and extracting it makes that
+impossible by construction. This is the reason UC1 was built first and
+completely: it established a pattern that UC4 follows rather than reinvents.
+
+**One rule specific to UC4:** `classBalance` is never read from the request
+body. UC4 fixes the opening balance at 0, and only a recorded sale (UC5) or
+attendance (UC6) may change it. Accepting it from the form would let a manager
+type in a balance that no sale ever paid for. This was verified by submitting
+a request containing `classBalance: 999` and confirming the stored value was
+still 0.
+
+**Also note what is *not* constrained:** the schema deliberately sets no
+minimum on `classBalance`. UC6 step 8 requires that an instructor be able to
+check in a customer who has run out of classes, saving a negative balance to
+be resolved later. A `min: 0` would make that legitimate case impossible, so
+the customer list highlights a negative balance instead of preventing it.
 
 ### 4.3 UC3 — Add a package *(original: Use case 3)*
 
@@ -178,6 +204,11 @@ end date; price.
 confirms. There is no branch in this use case, which is why it is scheduled
 last of the three — it exercises no pattern the other two have not already
 established.
+
+**Status: not delivered in Part 1.** Of the three planned use cases this was
+scheduled last, precisely because it exercises no pattern the other two have
+not already established — it is a plain form with no branching flow. Time ran
+out before it was reached. It is the first item of Part 2 work.
 
 **The interesting problem here is "unlimited."** A 3-month unlimited package
 has no number of classes, and a plain number cannot represent that honestly.
@@ -442,20 +473,28 @@ yogitrack/
     models/              Mongoose schemas, one file per collection
       Counter.js           the ID sequence
       Instructor.js        UC1
+      Customer.js          UC4
       personFields.js      the six fields UC1 and UC4 share
     routes/              URL → controller function
+      instructorRoutes.js
+      customerRoutes.js
     controllers/         business rules
+      instructorController.js
+      customerController.js
     services/
       idGenerator.js       atomic I/C/P ids
       messaging.js         confirmation messages (stubbed in Part 1)
+    utils/
+      nameLookup.js        the name-match rule both duplicate checks use
     middleware/
       errorHandler.js      one place that turns any error into a JSON response
   client/
     vite.config.js       dev server, and the /api proxy to Express
     src/
       api/               one function per endpoint; the only place URLs appear
-      components/        Layout, Alert, FormField, RadioGroup
-      pages/             one per screen
+      components/        Layout, Alert, FormField, RadioGroup, PersonForm
+      pages/             one per screen (thin wrappers over PersonForm for
+                         the two add screens)
       index.css          design tokens and all styling
   docs/                  specification, decisions, UML models, this report
 ```
@@ -508,7 +547,9 @@ the interface that is not understood.
 > 4. `add-instructor-duplicate.png` — the duplicate-name confirmation prompt
 > 5. `add-instructor-success.png` — the success panel with the generated ID and the welcome message
 > 6. `instructor-list.png` — the instructor list
-> 7. `mobile.png` — any screen at 375px wide, showing the responsive layout
+> 7. `add-customer-success.png` — a saved customer, showing the opening balance
+> 8. `customer-list.png` — the customer list with the class-balance column
+> 9. `mobile.png` — any screen at 375px wide, showing the responsive layout
 
 ---
 
@@ -531,6 +572,12 @@ case below was run and its result confirmed.
 | Two rejected submissions between two valid ones | IDs stay sequential, no gap | Pass (after the fix in decision 15) |
 | Fetch a non-existent ID | `404` with a clear message | Pass |
 | Fetch using lowercase `i00001` | Normalised and found | Pass |
+| Create a valid customer | `201`, ID `C00001`, balance 0 | Pass |
+| Customer duplicate across case (`sam` / `RIVERA`) | `409`, `requiresConfirmation` | Pass |
+| Confirmed customer duplicate | `201`, next sequential ID | Pass |
+| POST a customer with `classBalance: 999` | Ignored; stored value is 0 | Pass |
+| Instructor and customer ID sequences | Independent (`I00001` and `C00001` coexist) | Pass |
+| UC1 regression after extracting the shared helper | Unchanged behaviour | Pass |
 
 ### 10.2 Interface
 
@@ -542,6 +589,10 @@ case below was run and its result confirmed.
 | Confirm "Yes, add anyway" | Saved with the next ID; message routed by phone when phone was chosen | Pass |
 | Instructor list | Both records, newest first | Pass |
 | Viewport at 375px | Nav wraps, form collapses to one column, table scrolls horizontally | Pass |
+| Add a customer through the shared form | Saved as `C00001`, opening balance shown | Pass |
+| UC1 through the shared form after refactoring | Correct instructor wording, no balance line | Pass |
+| Customer list | Balance column present and correct | Pass |
+| Browser console across all screens | No errors or warnings | Pass |
 
 ### 10.3 The defect this found
 
@@ -581,16 +632,20 @@ supplies `PORT` and the Atlas connection string is set as a Heroku config var.
 
 ### 12.1 Honest limitations of Part 1
 
-1. **Messages are not delivered.** They are generated, displayed and logged.
+1. **UC3 (Add a package) was not delivered.** Two of the three planned use
+   cases are complete. UC3 is a plain form with no branching flow and no new
+   pattern to establish, which is why it was scheduled last and why it is the
+   cheapest thing to finish first in Part 2.
+2. **Messages are not delivered.** They are generated, displayed and logged.
    The stub reports `delivered: false`.
-2. **Records cannot be edited or deleted** once created. Deliberate; see
+3. **Records cannot be edited or deleted** once created. Deliberate; see
    decision 9.
-3. **There is no authentication.** Anyone who can reach the application can use
+4. **There is no authentication.** Anyone who can reach the application can use
    it. Deferred with decision 12, and it must be resolved before UC6, the first
    instructor-facing use case.
-4. **No automated tests.** Verification was manual and is documented in
+5. **No automated tests.** Verification was manual and is documented in
    section 10.
-5. **Address is a single free-text field.** If the UC7 reports ever need to
+6. **Address is a single free-text field.** If the UC7 reports ever need to
    group customers geographically, this needs revisiting first (decision 14).
 
 ### 12.2 Decisions still open
@@ -604,6 +659,7 @@ supplies `PORT` and the Atlas connection string is set as a Heroku config var.
 
 ### 12.3 Part 2 plan
 
+0. **UC3 Add Package** — carried over from Part 1; the first thing to finish.
 1. UC2 Add Class — schedule-conflict detection and alternative suggestions.
 2. UC5 Record Sale — validation against the package rate, balance update.
 3. UC6 Record Attendance — instructor view, schedule-mismatch warning,
@@ -628,8 +684,12 @@ route.
 | `GET` | `/api/instructors/check-name?firstName=&lastName=` | Duplicate check (UC1 step 2) | `200` `{exists, count, matches}` | `400` if a name is missing |
 | `GET` | `/api/instructors/:instructorId` | One instructor by readable ID | `200` | `404` |
 | `POST` | `/api/instructors` | Create (UC1) | `201` `{instructor, notification}` | `400` per-field; `409` `requiresConfirmation` |
+| `GET` | `/api/customers` | List all, newest first | `200` | — |
+| `GET` | `/api/customers/check-name?firstName=&lastName=` | Duplicate check (UC4 step 2) | `200` `{exists, count, matches}` | `400` if a name is missing |
+| `GET` | `/api/customers/:customerId` | One customer by readable ID | `200` | `404` |
+| `POST` | `/api/customers` | Create (UC4) | `201` `{customer, notification}` | `400` per-field; `409` `requiresConfirmation` |
 
-**The `409` contract.** A `409` from `POST /api/instructors` carrying
+**The `409` contract.** A `409` from either `POST` endpoint carrying
 `requiresConfirmation: true` does not mean the data is wrong. It means an
 instructor of that name already exists and the manager must confirm. Re-send
 the identical body with `confirmDuplicate: true` to proceed.

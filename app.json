@@ -1,0 +1,20 @@
+{
+  "name": "YogiTrack",
+  "description": "Record-keeping web application for the Yoga H'om yoga studio (ACS 5423 project).",
+  "repository": "https://github.com/REPLACE-ME/yogitrack",
+  "keywords": ["node", "express", "react", "mongodb", "mern"],
+  "env": {
+    "MONGODB_URI": {
+      "description": "MongoDB Atlas connection string. Set this as a Heroku config var; never commit it.",
+      "required": true
+    },
+    "NODE_ENV": {
+      "description": "Must be 'production' so Express serves the compiled React build.",
+      "value": "production"
+    }
+  },
+  "formation": {
+    "web": { "quantity": 1, "size": "eco" }
+  },
+  "buildpacks": [{ "url": "heroku/nodejs" }]
+}

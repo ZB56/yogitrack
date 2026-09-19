@@ -12,8 +12,8 @@ University of Oklahoma. Built on the MERN stack (MongoDB, Express, React, Node).
 | Use case | Description | Part | Status |
 |---|---|---|---|
 | UC1 | Add an instructor | 1 | **Complete** |
-| UC4 | Add a customer | 1 | Not started |
-| UC3 | Add a package | 1 | Not started |
+| UC4 | Add a customer | 1 | **Complete** |
+| UC3 | Add a package | 1 | Carried to Part 2 |
 | UC2 | Add a class | 2 | Not started |
 | UC5 | Record a sale | 2 | Not started |
 | UC6 | Record class attendance | 2 | Not started |
@@ -102,11 +102,52 @@ to Express.
 | GET | `/api/instructors/check-name?firstName=&lastName=` | Duplicate-name check (UC1 step 2) |
 | GET | `/api/instructors/:instructorId` | One instructor by readable ID (e.g. `I00001`) |
 | POST | `/api/instructors` | Create an instructor (UC1) |
+| GET | `/api/customers` | List all customers, newest first |
+| GET | `/api/customers/check-name?firstName=&lastName=` | Duplicate-name check (UC4 step 2) |
+| GET | `/api/customers/:customerId` | One customer by readable ID (e.g. `C00001`) |
+| POST | `/api/customers` | Create a customer (UC4) |
 
-`POST /api/instructors` answers **409 Conflict** with
-`requiresConfirmation: true` when an instructor of the same name already
-exists. That is not a rejection — two instructors may genuinely share a name
-(UC1 step 3). Resend the same body with `confirmDuplicate: true` to save it.
+Both `POST` endpoints answer **409 Conflict** with
+`requiresConfirmation: true` when a person of the same name already exists.
+That is not a rejection — two people may genuinely share a name (UC1/UC4
+step 3). Resend the same body with `confirmDuplicate: true` to save it.
+
+## Deploying to Heroku
+
+The repository is ready to deploy; the hosted accounts are created by hand.
+
+1. **MongoDB Atlas** — create a free cluster and a database user, allow access
+   from anywhere (Heroku dynos have no fixed IP), and copy the connection
+   string.
+2. **GitHub** — create the repository and push:
+   ```bash
+   git remote add origin https://github.com/<you>/yogitrack.git
+   git push -u origin main
+   ```
+3. **Heroku** — create the app, then set the two config vars. The Atlas
+   connection string goes here and nowhere else:
+   ```bash
+   heroku create <app-name>
+   heroku config:set NODE_ENV=production
+   heroku config:set MONGODB_URI='<your Atlas connection string>'
+   ```
+4. **Connect the pipeline** — in the Heroku dashboard, Deploy → GitHub, enable
+   automatic deploys from `main` and tick *Wait for CI to pass before deploy*.
+   `.github/workflows/ci.yml` is the check it waits on.
+
+What is already committed: `Procfile`, `app.json`, the `heroku-postbuild`
+script that compiles the React app, the production branch in `server.js` that
+serves `client/dist`, and the CI workflow.
+
+**No credential is committed at any point.** The application reads
+`MONGODB_URI` and `PORT` from the environment; locally those come from `.env`,
+which is git-ignored.
+
+To check the production build locally before deploying:
+```bash
+npm run build
+NODE_ENV=production npm start
+```
 
 ## Documentation
 
@@ -116,4 +157,6 @@ exists. That is not a rejection — two instructors may genuinely share a name
 - [`docs/05-build-plan.md`](docs/05-build-plan.md) — build order and why
 - [`docs/06-data-model.md`](docs/06-data-model.md) — collections and fields
 - [`docs/07-design-decisions.md`](docs/07-design-decisions.md) — decisions the specification leaves open
-- [`docs/08-use-case-diagram.md`](docs/08-use-case-diagram.md) — UML use-case diagram and where it differs from the written specs
+- [`docs/08-use-case-diagram.md`](docs/08-use-case-diagram.md) — the course use-case diagram and where it differs from the written specs
+- [`docs/10-uml-models.md`](docs/10-uml-models.md) — the four UML models, with editable PlantUML source
+- [`docs/11-project-report.md`](docs/11-project-report.md) — **the Part 1 project report**

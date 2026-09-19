@@ -39,15 +39,28 @@ attendance, and reports. It must be built on the **MERN stack**.
 - VSCode as the editor
 
 ## Plan
-- **Part 1 (due Sunday, Week 4, 11:59 pm CT):** Add Instructor (UC1),
-  Add Customer (UC4), Add Package (UC3). Deploy on zyLabs or Heroku. Project report.
-- **Part 2 (due Friday, Week 8, 11:59 pm CT):** Add Class (UC2), Record Sale (UC5),
-  Record Attendance (UC6), Reports (UC7). GitHub repo, Heroku deploy, CI/CD
-  pipeline, updated report.
+- **Part 1 (due Sunday, Week 4, 11:59 pm CT):** Add Instructor (UC1) and
+  Add Customer (UC4) are **done**. Add Package (UC3) was not reached and has
+  moved to the front of Part 2. Report and UML models are written
+  (`docs/11-project-report.md`, `docs/10-uml-models.md`). Deployment files are
+  committed (Procfile, app.json, .github/workflows/ci.yml) but the GitHub,
+  Atlas and Heroku accounts are not yet created.
+- **Part 2 (due Friday, Week 8, 11:59 pm CT):** UC3 first, then Add Class (UC2),
+  Record Sale (UC5), Record Attendance (UC6), Reports (UC7). GitHub repo,
+  Heroku deploy, CI/CD pipeline, updated report.
 
 See `docs/05-build-plan.md`, `docs/06-data-model.md`, and
-`docs/07-design-decisions.md` for detail. Items in the design-decisions file
-marked OPEN have not been decided yet; ask before assuming.
+`docs/07-design-decisions.md` for detail. Decisions 1-4, 6-9 and 13-15 are
+settled; 5, 10, 11 and 12 are still OPEN and all are Part 2 concerns. Ask
+before assuming on those.
+
+Local MongoDB is NOT a Homebrew service on this machine (Homebrew is blocked
+by outdated Command Line Tools). It runs from unpacked binaries outside the
+repo; the start command is in the README.
+
+The report is built with `python3 tools/build-report.py`, which regenerates
+`docs/project-report.html` from the Markdown source. Re-run it after editing
+the report.
 
 ## Structure and scope notes
 - The course prescribes no folder structure and no starter code. Follow
