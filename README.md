@@ -11,7 +11,7 @@ University of Oklahoma. Built on the MERN stack (MongoDB, Express, React, Node).
 
 | Use case | Description | Part | Status |
 |---|---|---|---|
-| UC1 | Add an instructor | 1 | Backend complete |
+| UC1 | Add an instructor | 1 | **Complete** |
 | UC4 | Add a customer | 1 | Not started |
 | UC3 | Add a package | 1 | Not started |
 | UC2 | Add a class | 2 | Not started |
@@ -57,6 +57,19 @@ Rationale for this layout is in [`docs/09-project-structure.md`](docs/09-project
 - Node.js 24 or newer
 - A running MongoDB 8 server on `localhost:27017`
 
+On this development machine MongoDB is not a Homebrew service: Homebrew
+refused to install it because the Xcode Command Line Tools are out of date.
+The official macOS binaries were unpacked to `../.tooling/mongodb` instead
+(outside the repository, so nothing about it is committed). Start it with:
+
+```bash
+../.tooling/mongodb/bin/mongod --dbpath ../.tooling/data \
+  --logpath ../.tooling/log/mongod.log --port 27017 --fork
+```
+
+Any MongoDB 8 on port 27017 works just as well; nothing in the application
+depends on how it was installed.
+
 ### 2. Configure
 ```bash
 cp .env.example .env
@@ -73,8 +86,12 @@ The API is then on <http://localhost:5001>. Check it with:
 curl localhost:5001/api/health
 ```
 
-Once the React client exists, `npm run dev:all` runs the server and the client
-dev server together.
+To run the API and the React dev server together:
+```bash
+npm run dev:all
+```
+The UI is then on <http://localhost:5173>, and Vite forwards its `/api` calls
+to Express.
 
 ## API endpoints
 
@@ -85,6 +102,11 @@ dev server together.
 | GET | `/api/instructors/check-name?firstName=&lastName=` | Duplicate-name check (UC1 step 2) |
 | GET | `/api/instructors/:instructorId` | One instructor by readable ID (e.g. `I00001`) |
 | POST | `/api/instructors` | Create an instructor (UC1) |
+
+`POST /api/instructors` answers **409 Conflict** with
+`requiresConfirmation: true` when an instructor of the same name already
+exists. That is not a rejection — two instructors may genuinely share a name
+(UC1 step 3). Resend the same body with `confirmDuplicate: true` to save it.
 
 ## Documentation
 
