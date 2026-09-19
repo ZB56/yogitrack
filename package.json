@@ -1,0 +1,27 @@
+{
+  "name": "yogitrack",
+  "version": "1.0.0",
+  "description": "YogiTrack - record-keeping web application for the Yoga H'om studio (ACS 5423 project)",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node --watch server/server.js",
+    "client": "npm run dev --prefix client",
+    "dev:all": "concurrently -n server,client -c blue,green \"npm run dev\" \"npm run client\"",
+    "build": "npm install --prefix client && npm run build --prefix client",
+    "heroku-postbuild": "npm run build"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "mongoose": "^8.20.1"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
