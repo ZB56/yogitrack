@@ -32,7 +32,7 @@ const USE_CASES = [
     title: 'Add a package',
     desc: 'Define a class package, its validity and its price.',
     to: '/packages/new',
-    ready: false,
+    ready: true,
   },
   {
     uc: 'UC2',

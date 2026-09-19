@@ -440,3 +440,11 @@ a { color: var(--sage-600); }
   font-weight: 700;
   color: var(--danger-fg);
 }
+
+/* A quieter badge, for secondary status like a package outside its validity
+ * window. The default badge is reserved for the primary attribute in a row. */
+.badge--muted {
+  background: var(--sage-100);
+  color: var(--ink-500);
+  margin-left: var(--space-2);
+}

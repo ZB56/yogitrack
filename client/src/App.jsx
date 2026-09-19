@@ -16,6 +16,8 @@ import AddInstructor from './pages/AddInstructor.jsx';
 import InstructorList from './pages/InstructorList.jsx';
 import AddCustomer from './pages/AddCustomer.jsx';
 import CustomerList from './pages/CustomerList.jsx';
+import AddPackage from './pages/AddPackage.jsx';
+import PackageList from './pages/PackageList.jsx';
 
 export default function App() {
   return (
@@ -36,6 +38,10 @@ export default function App() {
           {/* UC4 - Add a customer. */}
           <Route path="customers/new" element={<AddCustomer />} />
           <Route path="customers" element={<CustomerList />} />
+
+          {/* UC3 - Add a package. */}
+          <Route path="packages/new" element={<AddPackage />} />
+          <Route path="packages" element={<PackageList />} />
 
           {/* Anything unrecognised goes home rather than showing a blank
               screen. `replace` keeps the bad URL out of the back history. */}

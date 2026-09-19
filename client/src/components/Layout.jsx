@@ -19,6 +19,8 @@ const NAV_ITEMS = [
   { to: '/instructors', label: 'Instructors' },
   { to: '/customers/new', label: 'Add Customer' },
   { to: '/customers', label: 'Customers' },
+  { to: '/packages/new', label: 'Add Package' },
+  { to: '/packages', label: 'Packages' },
 ];
 
 export default function Layout() {
@@ -41,7 +43,7 @@ export default function Layout() {
                 // NavLink calls className with whether this link matches the
                 // current URL, which is how the active tab is highlighted.
                 // `end` stops /instructors matching /instructors/new too.
-                end={item.to === '/instructors' || item.to === '/customers'}
+                end={['/instructors', '/customers', '/packages'].includes(item.to)}
                 className={({ isActive }) =>
                   isActive ? 'nav__link nav__link--active' : 'nav__link'
                 }
