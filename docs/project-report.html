@@ -1038,10 +1038,21 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
 </li></ul>
 <h3 id="9-2-why-no-css-framework">9.2 Why no CSS framework</h3>
 <p>Bootstrap or Tailwind would have been quicker to start. Hand-written CSS was chosen because every rule is one that can be explained and defended, the application is small enough that a framework would add more to learn than it saves, and the result has no dependency to keep up to date. The cost is that the components had to be built by hand; the benefit is that there is nothing in the interface that is not understood.</p>
-<h3 id="9-3-screens">9.3 Screens</h3>
-<blockquote>
-<p><strong>Screenshots to insert before submission.</strong> Capture each of the following at a desktop width and save into <code>docs/screenshots/</code>: 1. <code>home.png</code> — the landing page with the use-case tiles 2. <code>add-instructor-empty.png</code> — the blank Add Instructor form 3. <code>add-instructor-errors.png</code> — the form submitted empty, showing per-field errors 4. <code>add-instructor-duplicate.png</code> — the duplicate-name confirmation prompt 5. <code>add-instructor-success.png</code> — the success panel with the generated ID and the welcome message 6. <code>instructor-list.png</code> — the instructor list 7. <code>add-customer-success.png</code> — a saved customer, showing the opening balance 8. <code>customer-list.png</code> — the customer list with the class-balance column 9. <code>add-package.png</code> — the Add Package form, with Unlimited selected 10. <code>package-list.png</code> — the package list showing the studio&#x27;s seven real rates 11. <code>mobile.png</code> — any screen at 375px wide, showing the responsive layout</p>
-</blockquote>
+<h3 id="9-3-the-screens">9.3 The screens</h3>
+<p>Seven screens, each doing one thing.</p>
+<table><thead><tr><th>Screen</th><th>Route</th><th>What it does</th></tr></thead><tbody>
+<tr><td>Home</td><td><code>/</code></td><td>One tile per use case, with the Part 2 tiles visibly greyed out. A manager can see the whole scope of the application at a glance, and the increment from Part 1 to Part 2 is obvious rather than hidden.</td></tr>
+<tr><td>Add instructor</td><td><code>/instructors/new</code></td><td>UC1. Six fields in three labelled groups, the duplicate-name prompt, and the generated ID and welcome message on success.</td></tr>
+<tr><td>Instructors</td><td><code>/instructors</code></td><td>Every instructor, newest first, with their preferred contact method as a badge.</td></tr>
+<tr><td>Add customer</td><td><code>/customers/new</code></td><td>UC4. The same form component as UC1, with the opening class balance confirmed on success.</td></tr>
+<tr><td>Customers</td><td><code>/customers</code></td><td>Adds a class-balance column. A negative balance is coloured rather than hidden, because UC6 makes it a legitimate state.</td></tr>
+<tr><td>Add package</td><td><code>/packages/new</code></td><td>UC3. The four class-count choices from the specification as one radio group, so &quot;unlimited&quot; is a first-class option rather than a special number.</td></tr>
+<tr><td>Packages</td><td><code>/packages</code></td><td>Laid out to read like the studio&#x27;s printed price list: what you get, who it is for, how long it lasts, what it costs.</td></tr>
+</tbody></table>
+<p>Three deliberate choices are worth drawing out:</p>
+<p><strong>The form is one component, used twice.</strong> UC1 and UC4 collect the same six fields and ask the same duplicate-name question, so <code>PersonForm</code> is written once and configured by props. The two pages supply only the wording, the API functions and the link target. This is a UI decision as much as a code one: the two screens behave identically because they <em>are</em> the same screen, not because two copies were kept in step by hand.</p>
+<p><strong>Errors appear beside the field they concern</strong>, not only in a summary at the top, and they clear as soon as the manager starts correcting that field. A message that stays put while its field is being fixed reads as broken.</p>
+<p><strong>The interface never looks idle while it is working.</strong> Buttons are disabled and relabelled through each stage — &quot;Checking name…&quot;, then &quot;Saving…&quot; — so a slow network produces a visibly busy screen rather than a dead one.</p>
 <h2 id="10-testing-and-verification">10. Testing and verification</h2>
 <p>No automated test suite is included in Part 1; verification was done by exercising the API directly and by driving the interface in a browser. Each case below was run and its result confirmed.</p>
 <h3 id="10-1-api">10.1 API</h3>

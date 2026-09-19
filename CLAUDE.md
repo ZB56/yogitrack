@@ -45,7 +45,6 @@ attendance, and reports. It must be built on the **MERN stack**.
   `docs/10-uml-models.md`). Deployment files are committed (Procfile,
   app.json, .github/workflows/ci.yml) and the production build is verified
   locally, but the GitHub, Atlas and Heroku accounts are not yet created.
-  Screenshots for report section 9.3 are still to be captured.
 - **Part 2 (due Friday, Week 8, 11:59 pm CT):** Add Class (UC2), Record Sale
   (UC5), Record Attendance (UC6), Reports (UC7), plus modify/delete for the
   Part 1 entities and real message delivery.

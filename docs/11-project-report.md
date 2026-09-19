@@ -595,23 +595,36 @@ saves, and the result has no dependency to keep up to date. The cost is that
 the components had to be built by hand; the benefit is that there is nothing in
 the interface that is not understood.
 
-### 9.3 Screens
+### 9.3 The screens
 
-> **Screenshots to insert before submission.** Capture each of the following at
-> a desktop width and save into `docs/screenshots/`:
-> 1. `home.png` — the landing page with the use-case tiles
-> 2. `add-instructor-empty.png` — the blank Add Instructor form
-> 3. `add-instructor-errors.png` — the form submitted empty, showing per-field errors
-> 4. `add-instructor-duplicate.png` — the duplicate-name confirmation prompt
-> 5. `add-instructor-success.png` — the success panel with the generated ID and the welcome message
-> 6. `instructor-list.png` — the instructor list
-> 7. `add-customer-success.png` — a saved customer, showing the opening balance
-> 8. `customer-list.png` — the customer list with the class-balance column
-> 9. `add-package.png` — the Add Package form, with Unlimited selected
-> 10. `package-list.png` — the package list showing the studio's seven real rates
-> 11. `mobile.png` — any screen at 375px wide, showing the responsive layout
+Seven screens, each doing one thing.
 
----
+| Screen | Route | What it does |
+|---|---|---|
+| Home | `/` | One tile per use case, with the Part 2 tiles visibly greyed out. A manager can see the whole scope of the application at a glance, and the increment from Part 1 to Part 2 is obvious rather than hidden. |
+| Add instructor | `/instructors/new` | UC1. Six fields in three labelled groups, the duplicate-name prompt, and the generated ID and welcome message on success. |
+| Instructors | `/instructors` | Every instructor, newest first, with their preferred contact method as a badge. |
+| Add customer | `/customers/new` | UC4. The same form component as UC1, with the opening class balance confirmed on success. |
+| Customers | `/customers` | Adds a class-balance column. A negative balance is coloured rather than hidden, because UC6 makes it a legitimate state. |
+| Add package | `/packages/new` | UC3. The four class-count choices from the specification as one radio group, so "unlimited" is a first-class option rather than a special number. |
+| Packages | `/packages` | Laid out to read like the studio's printed price list: what you get, who it is for, how long it lasts, what it costs. |
+
+Three deliberate choices are worth drawing out:
+
+**The form is one component, used twice.** UC1 and UC4 collect the same six
+fields and ask the same duplicate-name question, so `PersonForm` is written
+once and configured by props. The two pages supply only the wording, the API
+functions and the link target. This is a UI decision as much as a code one:
+the two screens behave identically because they *are* the same screen, not
+because two copies were kept in step by hand.
+
+**Errors appear beside the field they concern**, not only in a summary at the
+top, and they clear as soon as the manager starts correcting that field. A
+message that stays put while its field is being fixed reads as broken.
+
+**The interface never looks idle while it is working.** Buttons are disabled
+and relabelled through each stage — "Checking name…", then "Saving…" — so a
+slow network produces a visibly busy screen rather than a dead one.
 
 ## 10. Testing and verification
 
