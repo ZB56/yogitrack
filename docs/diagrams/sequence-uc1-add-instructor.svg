@@ -1,0 +1,177 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 1080" width="1160" height="1080" font-family="Helvetica, Arial, sans-serif">
+  <title>UC1 Add Instructor sequence diagram</title>
+  <desc>UML sequence diagram for the Add Instructor use case, including the duplicate-name confirmation branch.</desc>
+
+  <defs>
+    <marker id="solid" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#3a5840"/>
+    </marker>
+    <marker id="open" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10" fill="none" stroke="#6b746d" stroke-width="1.4"/>
+    </marker>
+  </defs>
+
+  <style>
+    .lane      { fill:#e5ede6; stroke:#3a5840; stroke-width:1.6; }
+    .lane-ext  { fill:#f6ece6; stroke:#b4714d; stroke-width:1.6; }
+    .lname     { font-size:12.5px; font-weight:700; fill:#1c211d; text-anchor:middle; }
+    .lsub      { font-size:10px; fill:#6b746d; text-anchor:middle; font-family:"SF Mono", Menlo, monospace; }
+    .life      { stroke:#a8afaa; stroke-width:1.2; stroke-dasharray:5 5; }
+    .act       { fill:#e5ede6; stroke:#3a5840; stroke-width:1.1; }
+    .call      { stroke:#3a5840; stroke-width:1.5; fill:none; }
+    .ret       { stroke:#6b746d; stroke-width:1.3; fill:none; stroke-dasharray:6 4; }
+    .msg       { font-size:11.5px; fill:#1c211d; }
+    .msgm      { font-size:11px; fill:#3d453f; font-family:"SF Mono", Menlo, monospace; }
+    .retm      { font-size:11px; fill:#6b746d; font-style:italic; }
+    .frame     { fill:none; stroke:#8a5c14; stroke-width:1.3; }
+    .frametag  { fill:#fdf4e3; stroke:#8a5c14; stroke-width:1.3; }
+    .frametxt  { font-size:11px; font-weight:700; fill:#8a5c14; }
+    .guard     { font-size:11px; fill:#8a5c14; font-style:italic; }
+    .step      { font-size:10px; fill:#4a7050; font-weight:700; }
+  </style>
+
+  <!-- ============ LIFELINE HEADERS ============ -->
+  <rect class="lane" x="20" y="34" width="130" height="52" rx="4"/>
+  <text class="lname" x="85" y="56">Manager</text>
+  <text class="lsub" x="85" y="72">«actor»</text>
+
+  <rect class="lane" x="215" y="34" width="180" height="52" rx="4"/>
+  <text class="lname" x="305" y="56">Add Instructor form</text>
+  <text class="lsub" x="305" y="72">AddInstructor.jsx</text>
+
+  <rect class="lane" x="465" y="34" width="190" height="52" rx="4"/>
+  <text class="lname" x="560" y="56">Express controller</text>
+  <text class="lsub" x="560" y="72">instructorController.js</text>
+
+  <rect class="lane" x="725" y="34" width="170" height="52" rx="4"/>
+  <text class="lname" x="810" y="56">Services</text>
+  <text class="lsub" x="810" y="72">idGenerator / messaging</text>
+
+  <rect class="lane-ext" x="965" y="34" width="170" height="52" rx="4"/>
+  <text class="lname" x="1050" y="56">MongoDB</text>
+  <text class="lsub" x="1050" y="72">via Mongoose</text>
+
+  <!-- ============ LIFELINES ============ -->
+  <line class="life" x1="85"   y1="86" x2="85"   y2="1000"/>
+  <line class="life" x1="305"  y1="86" x2="305"  y2="1000"/>
+  <line class="life" x1="560"  y1="86" x2="560"  y2="1000"/>
+  <line class="life" x1="810"  y1="86" x2="810"  y2="1000"/>
+  <line class="life" x1="1050" y1="86" x2="1050" y2="1000"/>
+
+  <!-- ============ ACTIVATION BARS ============ -->
+  <rect class="act" x="300"  y="124" width="10" height="814"/>
+  <rect class="act" x="555"  y="210" width="10" height="114"/>
+  <rect class="act" x="555"  y="516" width="10" height="386"/>
+  <rect class="act" x="805"  y="602" width="10" height="112"/>
+  <rect class="act" x="805"  y="826" width="10" height="40"/>
+  <rect class="act" x="1045" y="252" width="10" height="36"/>
+  <rect class="act" x="1045" y="642" width="10" height="36"/>
+  <rect class="act" x="1045" y="750" width="10" height="40"/>
+
+  <!-- ============ MESSAGES ============ -->
+
+  <!-- 1. Manager enters the data -->
+  <path class="call" d="M85 124 H300" marker-end="url(#solid)"/>
+  <text class="msg" x="96" y="118">enter name and details, click Save</text>
+  <text class="step" x="96" y="140">UC1 step 1</text>
+
+  <!-- 2. client-side validation (self call) -->
+  <path class="call" d="M310 156 H352 V176 H316" marker-end="url(#solid)"/>
+  <text class="msgm" x="360" y="162">validateForm(values)</text>
+  <text class="step" x="360" y="178">UC1 step 6, client half</text>
+
+  <!-- 3. duplicate lookup -->
+  <path class="call" d="M310 210 H555" marker-end="url(#solid)"/>
+  <text class="msgm" x="320" y="204">GET /api/instructors/check-name</text>
+  <text class="step" x="320" y="226">UC1 step 2</text>
+
+  <!-- 4. query -->
+  <path class="call" d="M565 252 H1045" marker-end="url(#solid)"/>
+  <text class="msgm" x="576" y="246">Instructor.find({ name }) case-insensitive</text>
+
+  <!-- 5. return matches -->
+  <path class="ret" d="M1045 288 H565" marker-end="url(#open)"/>
+  <text class="retm" x="576" y="282">matching documents</text>
+
+  <!-- 6. return exists -->
+  <path class="ret" d="M555 324 H310" marker-end="url(#open)"/>
+  <text class="retm" x="320" y="318">{ exists, count, matches }</text>
+
+  <!-- ============ ALT FRAGMENT ============ -->
+  <rect class="frame" x="40" y="348" width="600" height="138" rx="3"/>
+  <path class="frametag" d="M40 348 h66 v22 l-10 10 H40 z"/>
+  <text class="frametxt" x="50" y="364">alt</text>
+  <text class="guard" x="116" y="364">[ a match already exists ]</text>
+
+  <!-- 7. prompt -->
+  <path class="ret" d="M300 388 H85" marker-end="url(#open)"/>
+  <text class="retm" x="96" y="382">show &#8220;this name exists, add anyway?&#8221;</text>
+  <text class="step" x="96" y="404">UC1 step 3</text>
+
+  <!-- 8. confirm -->
+  <path class="call" d="M85 436 H300" marker-end="url(#solid)"/>
+  <text class="msg" x="96" y="430">confirm (sets confirmDuplicate = true)</text>
+
+  <line class="frame" x1="40" y1="458" x2="640" y2="458" stroke-dasharray="6 4"/>
+  <text class="guard" x="50" y="474">[ else ] no match &#8212; the save proceeds with no prompt</text>
+
+  <!-- 9. POST -->
+  <path class="call" d="M310 516 H555" marker-end="url(#solid)"/>
+  <text class="msgm" x="320" y="510">POST /api/instructors</text>
+
+  <!-- 10. server-side validation (self call) -->
+  <path class="call" d="M565 546 H607 V566 H571" marker-end="url(#solid)"/>
+  <text class="msgm" x="615" y="552">instructor.validate()</text>
+  <text class="step" x="615" y="568">UC1 step 6, before any id is issued</text>
+
+  <!-- 11. generate id -->
+  <path class="call" d="M565 602 H805" marker-end="url(#solid)"/>
+  <text class="msgm" x="576" y="596">generateId('instructor')</text>
+  <text class="step" x="576" y="618">UC1 step 4</text>
+
+  <!-- 12. atomic increment -->
+  <path class="call" d="M815 642 H1045" marker-end="url(#solid)"/>
+  <text class="msgm" x="826" y="636">findOneAndUpdate($inc)</text>
+
+  <!-- 13. seq back -->
+  <path class="ret" d="M1045 678 H815" marker-end="url(#open)"/>
+  <text class="retm" x="826" y="672">{ seq: 1 }</text>
+
+  <!-- 14. formatted id -->
+  <path class="ret" d="M805 714 H565" marker-end="url(#open)"/>
+  <text class="retm" x="576" y="708">&#8220;I00001&#8221;</text>
+
+  <!-- 15. save -->
+  <path class="call" d="M565 750 H1045" marker-end="url(#solid)"/>
+  <text class="msgm" x="576" y="744">instructor.save()</text>
+  <text class="step" x="576" y="766">UC1 step 7</text>
+
+  <!-- 16. saved doc -->
+  <path class="ret" d="M1045 790 H565" marker-end="url(#open)"/>
+  <text class="retm" x="576" y="784">saved document</text>
+
+  <!-- 17. welcome message -->
+  <path class="call" d="M565 826 H805" marker-end="url(#solid)"/>
+  <text class="msgm" x="576" y="820">sendMessage(instructor, welcome)</text>
+  <text class="step" x="576" y="842">UC1 step 8, routed by preferredContact</text>
+
+  <!-- 18. notification record -->
+  <path class="ret" d="M805 866 H565" marker-end="url(#open)"/>
+  <text class="retm" x="576" y="860">notification record</text>
+
+  <!-- 19. 201 -->
+  <path class="ret" d="M555 902 H310" marker-end="url(#open)"/>
+  <text class="retm" x="320" y="896">201 Created { instructor, notification }</text>
+
+  <!-- 20. confirmation to manager -->
+  <path class="ret" d="M300 938 H85" marker-end="url(#open)"/>
+  <text class="retm" x="96" y="932">confirmation, instructor id, message preview</text>
+  <text class="step" x="96" y="954">UC1 steps 7 and 8</text>
+
+  <!-- ============ NOTE ============ -->
+  <path d="M40 996 h600 l20 20 v52 H40 z" fill="#fdf4e3" stroke="#d8bc7f" stroke-width="1.2"/>
+  <path d="M640 996 v20 h20 z" fill="#fdf4e3" stroke="#d8bc7f" stroke-width="1.2"/>
+  <text x="54" y="1016" font-size="11" fill="#8a5c14" font-weight="700">Why validation (10) comes before id generation (11)</text>
+  <text x="54" y="1034" font-size="10.5" fill="#8a5c14">Issuing the id first would consume a counter number on every rejected form, leaving visible gaps</text>
+  <text x="54" y="1050" font-size="10.5" fill="#8a5c14">in the sequence: I00001 followed by I00004. Caught by testing; see design decision 15.</text>
+</svg>
