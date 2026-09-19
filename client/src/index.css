@@ -431,3 +431,12 @@ a { color: var(--sage-600); }
   white-space: nowrap;
   border: 0;
 }
+
+/* A negative class balance is a legitimate state, not a data error: UC6 lets
+ * an instructor check in a customer who has run out, to be resolved later.
+ * It is coloured so it stands out on the list without looking like a failure. */
+.table__balance--negative {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--danger-fg);
+}

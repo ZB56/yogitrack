@@ -14,6 +14,8 @@ import Layout from './components/Layout.jsx';
 import Home from './pages/Home.jsx';
 import AddInstructor from './pages/AddInstructor.jsx';
 import InstructorList from './pages/InstructorList.jsx';
+import AddCustomer from './pages/AddCustomer.jsx';
+import CustomerList from './pages/CustomerList.jsx';
 
 export default function App() {
   return (
@@ -30,6 +32,10 @@ export default function App() {
               React Router ranks routes by specificity, not by order. */}
           <Route path="instructors/new" element={<AddInstructor />} />
           <Route path="instructors" element={<InstructorList />} />
+
+          {/* UC4 - Add a customer. */}
+          <Route path="customers/new" element={<AddCustomer />} />
+          <Route path="customers" element={<CustomerList />} />
 
           {/* Anything unrecognised goes home rather than showing a blank
               screen. `replace` keeps the bad URL out of the back history. */}

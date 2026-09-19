@@ -25,7 +25,7 @@ const USE_CASES = [
     title: 'Add a customer',
     desc: 'Record a new customer and issue their C##### id.',
     to: '/customers/new',
-    ready: false,
+    ready: true,
   },
   {
     uc: 'UC3',

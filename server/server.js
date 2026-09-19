@@ -24,6 +24,7 @@ import cors from 'cors';
 import { connectToDatabase } from './config/db.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 import instructorRoutes from './routes/instructorRoutes.js';
+import customerRoutes from './routes/customerRoutes.js';
 
 // ES modules have no built-in __dirname (CommonJS did). This recreates it from
 // the module's own URL so paths below are relative to this file, not to the
@@ -65,6 +66,9 @@ app.get('/api/health', (req, res) => {
 
 // UC1 - Add an instructor
 app.use('/api/instructors', instructorRoutes);
+
+// UC4 - Add a customer
+app.use('/api/customers', customerRoutes);
 
 /* ---------------------------------------------------------------------------
  * Production: serve the compiled React app

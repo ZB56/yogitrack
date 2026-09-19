@@ -17,6 +17,7 @@
 import Instructor from '../models/Instructor.js';
 import { generateId } from '../services/idGenerator.js';
 import { sendMessage, welcomeMessage } from '../services/messaging.js';
+import { buildNameQuery } from '../utils/nameLookup.js';
 
 /**
  * Find instructors already recorded under a given name.
@@ -35,13 +36,11 @@ export async function checkInstructorName(req, res) {
     });
   }
 
-  // A plain === match would treat "ann lee" as a different person from
-  // "Ann Lee". A case-insensitive exact-match regular expression avoids that.
-  // `^...$` anchors it so "Ann" does not also match "Annabel".
-  const matches = await Instructor.find({
-    firstName: new RegExp(`^${escapeRegex(firstName.trim())}$`, 'i'),
-    lastName: new RegExp(`^${escapeRegex(lastName.trim())}$`, 'i'),
-  }).select('instructorId firstName lastName email');
+  // Case-insensitive, anchored match. The rule itself lives in utils/ because
+  // UC4 has to answer this question identically for customers.
+  const matches = await Instructor.find(
+    buildNameQuery(firstName, lastName)
+  ).select('instructorId firstName lastName email');
 
   res.json({
     exists: matches.length > 0,
@@ -72,10 +71,9 @@ export async function createInstructor(req, res) {
   // expected to have called check-name first, but a request can always arrive
   // without having done so, and the server is the only place a rule is real.
   if (!confirmDuplicate && firstName && lastName) {
-    const duplicates = await Instructor.countDocuments({
-      firstName: new RegExp(`^${escapeRegex(firstName.trim())}$`, 'i'),
-      lastName: new RegExp(`^${escapeRegex(lastName.trim())}$`, 'i'),
-    });
+    const duplicates = await Instructor.countDocuments(
+      buildNameQuery(firstName, lastName)
+    );
 
     if (duplicates > 0) {
       // 409 Conflict, not 400: the data is valid, it just needs confirming.
@@ -165,18 +163,4 @@ export async function getInstructor(req, res) {
   }
 
   res.json({ instructor });
-}
-
-/**
- * Escape characters that have a special meaning inside a regular expression.
- *
- * Without this, a name containing "." or "(" would be interpreted as a regex
- * operator instead of a literal character — wrong results at best, and at
- * worst a way for input to change what the query means.
- *
- * @param {string} text
- * @returns {string} text safe to embed in a RegExp
- */
-function escapeRegex(text) {
-  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
