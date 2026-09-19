@@ -1,0 +1,433 @@
+/*
+ * client/src/index.css
+ * --------------------
+ * One stylesheet for the whole application.
+ *
+ * Why one file and no CSS framework: every rule here is one we can explain in
+ * the project report, and the app is small enough that a framework would add
+ * more to learn than it saves. The design tokens below (colours, spacing,
+ * radii) are CSS custom properties, so a change in one place updates the whole
+ * interface consistently.
+ *
+ * Responsive strategy: mobile-first. The base rules describe the narrow-screen
+ * layout, and the media queries near the bottom widen it for larger screens.
+ */
+
+/* ---------------------------------------------------------------------------
+ * Design tokens
+ * ------------------------------------------------------------------------ */
+:root {
+  /* A calm, muted palette appropriate to a yoga studio. */
+  --sage-50:  #f4f7f4;
+  --sage-100: #e5ede6;
+  --sage-200: #c9dbcb;
+  --sage-500: #5e8c63;
+  --sage-600: #4a7050;
+  --sage-700: #3a5840;
+
+  --clay-100: #f6ece6;
+  --clay-500: #b4714d;
+
+  --ink-900: #1c211d;
+  --ink-700: #3d453f;
+  --ink-500: #6b746d;
+  --ink-300: #a8afaa;
+
+  --surface: #ffffff;
+  --page-bg: var(--sage-50);
+  --border: #dde4de;
+
+  --danger-bg: #fdecea;
+  --danger-fg: #a12d20;
+  --danger-border: #f3c5bf;
+
+  --success-bg: #e8f5ea;
+  --success-fg: #27632f;
+  --success-border: #c0e0c6;
+
+  --warn-bg: #fdf4e3;
+  --warn-fg: #8a5c14;
+  --warn-border: #f0dcb4;
+
+  /* One spacing scale keeps the vertical rhythm even across every screen. */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow: 0 1px 3px rgba(28, 33, 29, 0.08), 0 4px 16px rgba(28, 33, 29, 0.05);
+
+  --font: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* ---------------------------------------------------------------------------
+ * Base elements
+ * ------------------------------------------------------------------------ */
+
+/* border-box means padding and border count INSIDE a declared width, which is
+ * what you almost always want and is not the browser default. */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 16px;   /* below 16px, iOS Safari zooms in when a field is focused */
+  line-height: 1.55;
+  color: var(--ink-900);
+  background: var(--page-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { line-height: 1.25; margin: 0 0 var(--space-3); font-weight: 600; }
+h1 { font-size: 1.6rem; }
+h2 { font-size: 1.25rem; }
+h3 { font-size: 1.05rem; }
+p  { margin: 0 0 var(--space-4); }
+
+a { color: var(--sage-600); }
+
+/* A visible focus ring on every interactive element. Removing focus outlines
+ * is a common tutorial habit and it makes an app unusable by keyboard. */
+:focus-visible {
+  outline: 3px solid var(--sage-500);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Layout
+ * ------------------------------------------------------------------------ */
+.app-shell { min-height: 100vh; display: flex; flex-direction: column; }
+
+.site-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;      /* nav stays reachable while a long form scrolls */
+  top: 0;
+  z-index: 10;
+}
+
+.site-header__inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  text-decoration: none;
+  color: inherit;
+}
+.brand__name { font-size: 1.15rem; font-weight: 600; letter-spacing: -0.01em; }
+.brand__tag  { font-size: 0.78rem; color: var(--ink-500); }
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;       /* links wrap onto a second line on a phone */
+  gap: var(--space-1);
+}
+
+.nav__link {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: var(--ink-700);
+  font-size: 0.92rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.nav__link:hover { background: var(--sage-100); color: var(--sage-700); }
+
+/* Set by NavLink when the link matches the current URL, so the manager can
+ * always see which screen they are on. */
+.nav__link--active { background: var(--sage-600); color: #fff; }
+.nav__link--active:hover { background: var(--sage-700); color: #fff; }
+
+.main {
+  flex: 1;               /* pushes the footer to the bottom on short pages */
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-4) var(--space-7);
+}
+
+.page-header { margin-bottom: var(--space-5); }
+.page-header p { color: var(--ink-500); margin: 0; max-width: 60ch; }
+
+.site-footer {
+  border-top: 1px solid var(--border);
+  padding: var(--space-4);
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--ink-500);
+}
+
+/* ---------------------------------------------------------------------------
+ * Cards
+ * ------------------------------------------------------------------------ */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-5);
+  box-shadow: var(--shadow);
+}
+.card + .card { margin-top: var(--space-5); }
+.card__title { margin-bottom: var(--space-4); }
+
+/* ---------------------------------------------------------------------------
+ * Forms
+ * ------------------------------------------------------------------------ */
+.form__section { border: 0; margin: 0 0 var(--space-5); padding: 0; }
+.form__section-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-500);
+  padding: 0;
+  margin-bottom: var(--space-3);
+}
+
+/* One column on a phone; the media query below makes it two on a wider screen. */
+.form__grid { display: grid; gap: var(--space-4); grid-template-columns: 1fr; }
+
+.field { display: flex; flex-direction: column; gap: var(--space-1); }
+.field--full { grid-column: 1 / -1; }
+
+.field__label { font-size: 0.88rem; font-weight: 600; color: var(--ink-700); }
+.field__required { color: var(--clay-500); margin-left: 2px; }
+
+.field__input {
+  font: inherit;
+  color: inherit;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  width: 100%;
+}
+.field__input:focus { border-color: var(--sage-500); }
+
+/* Applied when the server or the form reports a problem with this one field,
+ * so the error is visible next to the input rather than only at the top. */
+.field__input--invalid { border-color: var(--danger-fg); background: var(--danger-bg); }
+
+.field__hint  { font-size: 0.8rem; color: var(--ink-500); }
+.field__error { font-size: 0.82rem; color: var(--danger-fg); font-weight: 500; }
+
+.radio-group { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+
+.radio {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  cursor: pointer;
+  flex: 1 1 140px;       /* each option grows to fill, wrapping when too narrow */
+  font-size: 0.92rem;
+}
+.radio:hover { border-color: var(--sage-500); }
+.radio--checked { border-color: var(--sage-600); background: var(--sage-100); font-weight: 500; }
+
+.form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+}
+
+/* ---------------------------------------------------------------------------
+ * Buttons
+ * ------------------------------------------------------------------------ */
+.btn {
+  font: inherit;
+  font-weight: 500;
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  min-height: 44px;      /* Apple's minimum comfortable touch target */
+}
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.btn--primary { background: var(--sage-600); color: #fff; }
+.btn--primary:hover:not(:disabled) { background: var(--sage-700); }
+
+.btn--secondary { background: var(--surface); color: var(--ink-700); border-color: var(--border); }
+.btn--secondary:hover:not(:disabled) { background: var(--sage-50); border-color: var(--sage-500); }
+
+.btn--link {
+  background: none;
+  border: none;
+  color: var(--sage-600);
+  text-decoration: underline;
+  padding: var(--space-2);
+  min-height: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * Alerts
+ * ------------------------------------------------------------------------ */
+.alert {
+  border: 1px solid;
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+.alert__title { font-weight: 600; margin-bottom: var(--space-1); }
+.alert p:last-child { margin-bottom: 0; }
+
+.alert--error   { background: var(--danger-bg);  color: var(--danger-fg);  border-color: var(--danger-border); }
+.alert--success { background: var(--success-bg); color: var(--success-fg); border-color: var(--success-border); }
+.alert--warning { background: var(--warn-bg);    color: var(--warn-fg);    border-color: var(--warn-border); }
+.alert--info    { background: var(--sage-100);   color: var(--sage-700);   border-color: var(--sage-200); }
+
+.alert__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-3); }
+
+/* The stubbed confirmation message from services/messaging.js, shown so the
+ * manager can see exactly what the instructor or customer would receive. */
+.message-preview {
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  color: var(--ink-700);
+}
+.message-preview__channel {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-500);
+  margin-bottom: var(--space-1);
+}
+
+/* ---------------------------------------------------------------------------
+ * Tables
+ *
+ * A table is the right element for records: it carries row/column meaning for
+ * a screen reader, which a grid of divs does not. On a narrow screen the
+ * wrapper scrolls sideways rather than squashing the columns.
+ * ------------------------------------------------------------------------ */
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+.table th, .table td {
+  text-align: left;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.table th {
+  background: var(--sage-50);
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-500);
+}
+.table tbody tr:last-child td { border-bottom: none; }
+.table tbody tr:hover { background: var(--sage-50); }
+.table__id { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--sage-700); }
+
+.badge {
+  display: inline-block;
+  padding: 2px var(--space-2);
+  border-radius: 999px;
+  background: var(--clay-100);
+  color: var(--clay-500);
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.empty-state {
+  text-align: center;
+  padding: var(--space-7) var(--space-4);
+  color: var(--ink-500);
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+}
+
+.spinner-text { color: var(--ink-500); padding: var(--space-5); text-align: center; }
+
+/* ---------------------------------------------------------------------------
+ * Home page tiles
+ * ------------------------------------------------------------------------ */
+.tiles { display: grid; gap: var(--space-4); grid-template-columns: 1fr; }
+
+.tile {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-5);
+  box-shadow: var(--shadow);
+}
+.tile:hover { border-color: var(--sage-500); transform: translateY(-2px); }
+.tile { transition: transform 0.15s ease, border-color 0.15s ease; }
+.tile__uc { font-size: 0.74rem; font-weight: 700; letter-spacing: 0.07em; color: var(--sage-600); }
+.tile__title { margin: var(--space-1) 0 var(--space-2); font-size: 1.05rem; font-weight: 600; }
+.tile__desc { font-size: 0.9rem; color: var(--ink-500); margin: 0; }
+.tile--soon { opacity: 0.6; }
+
+/* ---------------------------------------------------------------------------
+ * Wider screens
+ * ------------------------------------------------------------------------ */
+@media (min-width: 640px) {
+  h1 { font-size: 2rem; }
+  .form__grid { grid-template-columns: 1fr 1fr; }
+  .tiles { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 900px) {
+  /* Brand and navigation sit on one line once there is room for both. */
+  .site-header__inner { flex-direction: row; align-items: center; justify-content: space-between; }
+  .tiles { grid-template-columns: repeat(3, 1fr); }
+  .main { padding-top: var(--space-6); }
+}
+
+/* Respect a reader who has asked their system to reduce motion. */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+  .tile:hover { transform: none; }
+}
+
+/* ---------------------------------------------------------------------------
+ * Utilities
+ * ------------------------------------------------------------------------ */
+
+/* Hides an element from the screen while keeping it available to a screen
+ * reader. `display: none` would remove it from both. Used for table captions
+ * and other labels the visual layout already makes obvious. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

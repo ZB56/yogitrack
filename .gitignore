@@ -15,3 +15,7 @@ client/build/
 npm-debug.log*
 .DS_Store
 .vscode/
+
+# Vite dev-server cache
+client/node_modules/
+client/.vite/
