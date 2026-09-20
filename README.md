@@ -146,7 +146,9 @@ The repository is ready to deploy; the hosted accounts are created by hand.
    `.github/workflows/ci.yml` is the check it waits on.
 
 What is already committed: `Procfile`, `app.json`, the `heroku-postbuild`
-script that compiles the React app, the production branch in `server.js` that
+script that compiles the React app (it passes `--include=dev`, because Heroku
+sets `NODE_ENV=production`, which would otherwise skip `vite` and leave the
+build with no bundler), the production branch in `server.js` that
 serves `client/dist`, and the CI workflow.
 
 **No credential is committed at any point.** The application reads
