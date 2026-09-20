@@ -55,7 +55,7 @@ Cmd&#8209;P, choose <em>Save as PDF</em>, and make sure &ldquo;Print
 backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
 <div class="page">
 <h1 id="yogitrack-project-report-part-1">YogiTrack — Project Report, Part 1</h1>
-<p><strong>Course:</strong> ACS 5423 — Software Development for World Wide Web <strong>Institution:</strong> University of Oklahoma <strong>Application:</strong> YogiTrack, a record-keeping system for the Yoga H&#x27;om studio <strong>Increment:</strong> Application 1.0 (Part 1) <strong>Technology stack:</strong> MongoDB · Express · React · Node.js (MERN)</p>
+<p><strong>Course:</strong> ACS 5423 — Software Development for World Wide Web <strong>Institution:</strong> University of Oklahoma <strong>Application:</strong> YogiTrack, a record-keeping system for the Yoga H&#x27;om studio <strong>Increment:</strong> Application 1.0 (Part 1) <strong>Technology stack:</strong> MongoDB · Express · React · Node.js (MERN) <strong>Live application:</strong> https://yogitrack-zb-9cc3ff17df1c.herokuapp.com <strong>Repository:</strong> https://github.com/ZB56/yogitrack</p>
 <h2 id="1-executive-summary">1. Executive summary</h2>
 <p>Yoga H&#x27;om runs its studio on paper: a card per customer for classes bought and attended, and a signed sheet per class. That process does not scale and cannot answer questions like &quot;how much do we owe each instructor this month?&quot; without manual tallying.</p>
 <p>YogiTrack replaces those records with a web application. Part 1 delivers the foundation of the data model — the people and products the rest of the system refers to — together with the full technical architecture that Part 2 builds on.</p>
@@ -1103,9 +1103,23 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
 <p><strong>Target: Heroku</strong>, with MongoDB Atlas as the database. Chosen over zyLabs because Part 2 requires a GitHub repository, a Heroku deployment and a CI/CD pipeline regardless; building that pipeline once, for Part 1, avoids doing the work twice. The cost is an Eco dyno at roughly $5 per month.</p>
 <p><strong>How the production build works.</strong> <code>heroku-postbuild</code> runs the client build, producing <code>client/dist</code>. On start, <code>server.js</code> detects <code>NODE_ENV=production</code> and serves those static files alongside the <code>/api</code> routes, with any non-API <code>GET</code> falling back to <code>index.html</code> so that React Router handles page routes. Without that fallback, refreshing <code>/instructors</code> would return a 404.</p>
 <p><strong>Configuration and secrets.</strong> The application reads <code>PORT</code> and <code>MONGODB_URI</code> from the environment. Locally these come from <code>.env</code>, which is git-ignored; <code>.env.example</code> documents the names with no real values. In production Heroku supplies <code>PORT</code> and the Atlas connection string is set as a Heroku config var. <strong>No credential is committed at any point.</strong></p>
-<blockquote>
-<p><strong>Deployment status.</strong> See the repository README for the current state of the GitHub repository, the Atlas cluster and the Heroku application. The configuration described above is committed; creating the hosted accounts is a manual step performed by the developer.</p>
-</blockquote>
+<h3 id="11-1-deployment-status-live">11.1 Deployment status: live</h3>
+<p>The application is deployed and serving requests:</p>
+<table><thead><tr><th>Component</th><th>Status</th></tr></thead><tbody>
+<tr><td>Application</td><td><strong>https://yogitrack-zb-9cc3ff17df1c.herokuapp.com</strong></td></tr>
+<tr><td>Repository</td><td>https://github.com/ZB56/yogitrack (11+ commits, private)</td></tr>
+<tr><td>Database</td><td>MongoDB Atlas M0 cluster, database <code>yogitrack</code></td></tr>
+<tr><td>Continuous integration</td><td>GitHub Actions, passing</td></tr>
+<tr><td>Dyno</td><td>Basic, one web process</td></tr>
+</tbody></table>
+<p>A production smoke test against the live URL passed all nine checks: the health endpoint, creating an instructor, per-field validation, the duplicate <code>409</code>, creating a customer, creating a package, rejection of an invalid class count, a React deep link served correctly, and an unknown <code>/api</code> path still returning JSON rather than the single-page app.</p>
+<h3 id="11-2-two-failures-worth-recording">11.2 Two failures worth recording</h3>
+<p>Neither appeared in local testing, and both are the kind of thing that only the real platform reveals.</p>
+<p><strong>The first deploy failed to build:</strong> <code>sh: 1: vite: not found</code>. Heroku sets <code>NODE_ENV=production</code> for the build, and npm omits <code>devDependencies</code> when it is set. Vite is a devDependency — correctly, since it is a build tool and not a runtime dependency — so the client had no bundler.</p>
+<p>The fix was <code>npm ci --prefix client --include=dev</code> rather than moving Vite into <code>dependencies</code>, which would have misfiled a build tool to work around a flag. The failure was then reproduced locally with <code>NODE_ENV=production npm run build</code> against a cleared <code>node_modules</code>, and the fix confirmed under the same conditions. The earlier local production test had missed it because <code>NODE_ENV</code> was not set during the <em>install</em> step, only the run step.</p>
+<p><strong>The second deploy built but crashed on boot:</strong> <code>Failed to start server: Authentication failed.</code> The Atlas connection string was well formed but the credentials were rejected, and resetting the database user&#x27;s password fixed it.</p>
+<p>This one is worth noting because the application behaved exactly as designed. <code>server.js</code> connects to the database <em>before</em> it starts listening, and exits with a clear message if that fails. The alternative — listening first and discovering the problem on the first request — would have produced a running app that returned confusing errors on every endpoint. The crash was the correct outcome, and the log line named the cause precisely.</p>
+<p>A related detail: the first connection string was missing its database name (<code>...mongodb.net/?...</code> rather than <code>...mongodb.net/yogitrack?...</code>). Mongoose would have silently connected to a database called <code>test</code>, and the application would have worked while writing to the wrong place.</p>
 <h2 id="12-known-limitations-and-the-part-2-plan">12. Known limitations and the Part 2 plan</h2>
 <h3 id="12-1-honest-limitations-of-part-1">12.1 Honest limitations of Part 1</h3>
 <ul>

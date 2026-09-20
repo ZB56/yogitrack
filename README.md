@@ -7,6 +7,9 @@ attendance, and studio reports.
 Course project for **ACS 5423 — Software Development for World Wide Web**,
 University of Oklahoma. Built on the MERN stack (MongoDB, Express, React, Node).
 
+**Live application:** https://yogitrack-zb-9cc3ff17df1c.herokuapp.com
+**Repository:** https://github.com/ZB56/yogitrack
+
 ## Status
 
 | Use case | Description | Part | Status |
@@ -122,9 +125,10 @@ Both `POST` endpoints answer **409 Conflict** with
 That is not a rejection — two people may genuinely share a name (UC1/UC4
 step 3). Resend the same body with `confirmDuplicate: true` to save it.
 
-## Deploying to Heroku
+## Deployment
 
-The repository is ready to deploy; the hosted accounts are created by hand.
+**The application is deployed and running at https://yogitrack-zb-9cc3ff17df1c.herokuapp.com**, backed by a MongoDB
+Atlas cluster. What follows is the full setup, recorded so it can be repeated.
 
 1. **MongoDB Atlas** — create a free cluster and a database user, allow access
    from anywhere (Heroku dynos have no fixed IP), and copy the connection

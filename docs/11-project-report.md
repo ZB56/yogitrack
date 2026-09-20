@@ -5,6 +5,8 @@
 **Application:** YogiTrack, a record-keeping system for the Yoga H'om studio
 **Increment:** Application 1.0 (Part 1)
 **Technology stack:** MongoDB · Express · React · Node.js (MERN)
+**Live application:** https://yogitrack-zb-9cc3ff17df1c.herokuapp.com
+**Repository:** https://github.com/ZB56/yogitrack
 
 ---
 
@@ -705,10 +707,58 @@ from the environment. Locally these come from `.env`, which is git-ignored;
 supplies `PORT` and the Atlas connection string is set as a Heroku config var.
 **No credential is committed at any point.**
 
-> **Deployment status.** See the repository README for the current state of the
-> GitHub repository, the Atlas cluster and the Heroku application. The
-> configuration described above is committed; creating the hosted accounts is
-> a manual step performed by the developer.
+### 11.1 Deployment status: live
+
+The application is deployed and serving requests:
+
+| Component | Status |
+|---|---|
+| Application | **https://yogitrack-zb-9cc3ff17df1c.herokuapp.com** |
+| Repository | https://github.com/ZB56/yogitrack (11+ commits, private) |
+| Database | MongoDB Atlas M0 cluster, database `yogitrack` |
+| Continuous integration | GitHub Actions, passing |
+| Dyno | Basic, one web process |
+
+A production smoke test against the live URL passed all nine checks: the
+health endpoint, creating an instructor, per-field validation, the duplicate
+`409`, creating a customer, creating a package, rejection of an invalid class
+count, a React deep link served correctly, and an unknown `/api` path still
+returning JSON rather than the single-page app.
+
+### 11.2 Two failures worth recording
+
+Neither appeared in local testing, and both are the kind of thing that only
+the real platform reveals.
+
+**The first deploy failed to build:** `sh: 1: vite: not found`. Heroku sets
+`NODE_ENV=production` for the build, and npm omits `devDependencies` when it
+is set. Vite is a devDependency — correctly, since it is a build tool and not
+a runtime dependency — so the client had no bundler.
+
+The fix was `npm ci --prefix client --include=dev` rather than moving Vite
+into `dependencies`, which would have misfiled a build tool to work around a
+flag. The failure was then reproduced locally with
+`NODE_ENV=production npm run build` against a cleared `node_modules`, and the
+fix confirmed under the same conditions. The earlier local production test had
+missed it because `NODE_ENV` was not set during the *install* step, only the
+run step.
+
+**The second deploy built but crashed on boot:** `Failed to start server:
+Authentication failed.` The Atlas connection string was well formed but the
+credentials were rejected, and resetting the database user's password fixed
+it.
+
+This one is worth noting because the application behaved exactly as designed.
+`server.js` connects to the database *before* it starts listening, and exits
+with a clear message if that fails. The alternative — listening first and
+discovering the problem on the first request — would have produced a running
+app that returned confusing errors on every endpoint. The crash was the
+correct outcome, and the log line named the cause precisely.
+
+A related detail: the first connection string was missing its database name
+(`...mongodb.net/?...` rather than `...mongodb.net/yogitrack?...`). Mongoose
+would have silently connected to a database called `test`, and the
+application would have worked while writing to the wrong place.
 
 ---
 
