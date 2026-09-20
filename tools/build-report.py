@@ -235,10 +235,15 @@ figcaption{font-family:Helvetica,Arial,sans-serif;font-size:8.5pt;color:var(--mu
 .hint{font-family:Helvetica,Arial,sans-serif;font-size:10pt;background:var(--sage-l);
       border:1px solid var(--line);border-radius:5px;padding:.8em 1em;margin:0 auto 14px;max-width:7.6in}
 @media print{
+  /* Without this, Chrome and Safari strip every background colour when
+     printing, which would flatten the table headers, the note panels and the
+     diagram tints into plain white. */
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body{background:#fff}
   .page{max-width:none;padding:0}
   .hint{display:none}
   h2,h3{page-break-after:avoid}
+  table,pre,blockquote,.diagram{page-break-inside:avoid}
   @page{margin:0.75in;size:letter}
 }
 """

@@ -113,7 +113,7 @@
   <text class="msg" x="96" y="430">confirm (sets confirmDuplicate = true)</text>
 
   <line class="frame" x1="40" y1="458" x2="640" y2="458" stroke-dasharray="6 4"/>
-  <text class="guard" x="50" y="474">[ else ] no match &#8212; the save proceeds with no prompt</text>
+  <text class="guard" x="50" y="474">[ else ] no match: the save proceeds with no prompt</text>
 
   <!-- 9. POST -->
   <path class="call" d="M310 516 H555" marker-end="url(#solid)"/>

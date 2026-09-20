@@ -1,6 +1,6 @@
-# YogiTrack — Project Report, Part 1
+# YogiTrack: Project Report, Part 1
 
-**Course:** ACS 5423 — Software Development for World Wide Web
+**Course:** ACS 5423, Software Development for World Wide Web
 **Institution:** University of Oklahoma
 **Application:** YogiTrack, a record-keeping system for the Yoga H'om studio
 **Increment:** Application 1.0 (Part 1)
@@ -24,8 +24,8 @@
 10. [Testing and verification](#10-testing-and-verification)
 11. [Deployment](#11-deployment)
 12. [Known limitations and the Part 2 plan](#12-known-limitations-and-the-part-2-plan)
-13. [Appendix A — API reference](#appendix-a--api-reference)
-14. [Appendix B — running the project](#appendix-b--running-the-project)
+13. [Appendix A: API reference](#appendix-a-api-reference)
+14. [Appendix B: running the project](#appendix-b-running-the-project)
 
 ---
 
@@ -37,8 +37,8 @@ answer questions like "how much do we owe each instructor this month?" without
 manual tallying.
 
 YogiTrack replaces those records with a web application. Part 1 delivers the
-foundation of the data model — the people and products the rest of the system
-refers to — together with the full technical architecture that Part 2 builds on.
+foundation of the data model (the people and products the rest of the system
+refers to) together with the full technical architecture that Part 2 builds on.
 
 **What Part 1 delivers:**
 
@@ -47,11 +47,6 @@ refers to — together with the full technical architecture that Part 2 builds o
 | UC1 | Add an instructor | **Implemented end to end** |
 | UC4 | Add a customer | **Implemented end to end** |
 | UC3 | Add a package | **Implemented end to end** |
-
-> **Status note.** This report describes only what is in the committed code.
-> All three use cases planned for this increment are complete; the grading
-> criteria require at least two. What remains outstanding is listed plainly in
-> section 12.
 
 **What Part 1 also establishes**, and what Part 2 therefore does not have to
 re-solve: the request pipeline (routes → controllers → services → models), the
@@ -105,8 +100,8 @@ A class cannot be scheduled without an instructor. A sale cannot be recorded
 without both a customer and a package. Attendance needs all of them, and the
 reports aggregate everything.
 
-Part 1 therefore builds the three roots of the tree — instructor, customer and
-package — and all three are delivered. This is not merely a convenient split.
+Part 1 therefore builds the three roots of the tree (instructor, customer and
+package), and all three are delivered. This is not merely a convenient split.
 It means **Part 2 is purely additive**: no Part 1 entity has to be redesigned
 to make Part 2 work, because every Part 2 entity depends on Part 1 rather than
 the other way round.
@@ -129,7 +124,7 @@ The course specification labels two different use cases "Use case 5" and labels
 reports "Use case 6". They are renumbered 1–7 throughout this report; the
 original labels are given in parentheses. This is recorded as decision 6.
 
-### 4.1 UC1 — Add an instructor *(original: Use case 1)*
+### 4.1 UC1: Add an instructor *(original: Use case 1)*
 
 **Actor:** Manager
 **Goal:** Put a new instructor on file and tell them their ID.
@@ -163,11 +158,11 @@ specification, not a convention we invented.
 **Beyond the specification:** a read-only instructor list, so that saved
 records are actually visible. See decision 9.
 
-### 4.2 UC4 — Add a customer *(original: Use case 4)* — implemented
+### 4.2 UC4: Add a customer *(original: Use case 4)*, implemented
 
-Identical in shape to UC1 — same six demographic fields, same duplicate-name
-check, same generated ID (prefixed **C**), same welcome message — with one
-additional field: **class balance**, which starts at 0 and is later changed by
+Identical in shape to UC1 in every respect: the same six demographic fields,
+the same duplicate-name check, the same generated ID (prefixed **C**) and the
+same welcome message. It adds one field: **class balance**, which starts at 0 and is later changed by
 UC5 (a sale increases it) and UC6 (attendance decreases it).
 
 Because the two use cases are so nearly the same, the second was built by
@@ -182,8 +177,8 @@ Because the two use cases are so nearly the same, the second was built by
 
 `AddInstructor.jsx` and `AddCustomer.jsx` are now thin wrappers that supply
 only what genuinely differs: the wording, which API functions to call, and
-where the "view all" link points. Copied code drifts — a fix applied to one
-copy silently fails to reach the other — and extracting it makes that
+where the "view all" link points. Copied code drifts: a fix applied to one
+copy silently fails to reach the other. Extracting it makes that drift
 impossible by construction. This is the reason UC1 was built first and
 completely: it established a pattern that UC4 follows rather than reinvents.
 
@@ -200,7 +195,7 @@ check in a customer who has run out of classes, saving a negative balance to
 be resolved later. A `min: 0` would make that legitimate case impossible, so
 the customer list highlights a negative balance instead of preventing it.
 
-### 4.3 UC3 — Add a package *(original: Use case 3)*
+### 4.3 UC3: Add a package *(original: Use case 3)*
 
 **Actor:** Manager
 **Data captured:** package name; category (General or Senior); number of
@@ -209,11 +204,11 @@ end date; price.
 
 **Flow:** the manager enters the data and the system generates a package ID and
 confirms. There is no branch in this use case, which is why it is scheduled
-last of the three — it exercises no pattern the other two have not already
+last of the three: it exercises no pattern the other two have not already
 established.
 
 **Flow:** the manager enters the data and the system generates a package ID
-and confirms. Two steps, no branch — which is why it was scheduled last of the
+and confirms. Two steps, no branch, which is why it was scheduled last of the
 three: it exercises no pattern the other two had not already established.
 
 **The studio's actual price list** (Fig. 2 of the requirements) is what the
@@ -259,8 +254,8 @@ numClasses: {
 
 Mongoose calls that function with the document as `this`, so the field is
 mandatory for a counted package and legitimately absent for an unlimited one.
-A plain `required: true` would have made the 3-month unlimited pass — one of
-the studio's seven real products — impossible to save.
+A plain `required: true` would have made the 3-month unlimited pass, one of
+the studio's seven real products, impossible to save.
 
 Two further rules are enforced at the schema rather than trusted from the
 form: the class count must be one the studio actually sells (1, 4 or 10), and
@@ -293,7 +288,7 @@ Two actors: the **Manager**, responsible for records and money, and the
 **Instructor**, who records attendance. The four reports are modelled as
 specialisations of UC7.
 
-The course's own Fig. 5 is broader than the written specification — it shows
+The course's own Fig. 5 is broader than the written specification: it shows
 Add/Modify/Delete rather than Add, adds "Publish Class Schedule", "View Class
 Schedule" and "View Class Attendance", and names a different set of reports.
 Rather than silently pick one, the differences are catalogued in
@@ -311,13 +306,13 @@ Six domain collections plus `counters`. Three points are worth drawing out:
   database will accept it. Every reference that matters is therefore checked in
   the Express controller. The `«FK»` marks on the diagram denote intent, not a
   constraint.
-- **Enumerated values are enforced in two places** — the Mongoose schema and
+- **Enumerated values are enforced in two places**: the Mongoose schema and
   the React form. The schema is the one that counts, because a request can
   always arrive without passing through the form.
 - **`fullName` is derived, not stored.** Storing it would mean two fields that
   can disagree with the name they are built from.
 
-### 5.3 Sequence diagram — UC1
+### 5.3 Sequence diagram for UC1
 
 ![UC1 sequence diagram](diagrams/sequence-uc1-add-instructor.svg)
 
@@ -325,7 +320,7 @@ UC1 is diagrammed because it is the only Part 1 use case containing a branch.
 Each message is annotated with the specification step it implements.
 
 The `alt` fragment is the duplicate-name interaction. The ordering of messages
-10 and 11 — validate, *then* generate the ID — is deliberate and is explained
+10 and 11 (validate, *then* generate the ID) is deliberate and is explained
 in decision 15.
 
 ### 5.4 Architecture and deployment
@@ -352,7 +347,7 @@ plus a zero-padded number: `I00001`, `C00001`.
 
 **Rejected:** counting the existing documents and adding one. That is a read
 followed by a write, and two managers saving simultaneously would both read 12
-and both write 13 — a lost update, and two instructors sharing an ID. `$inc` is
+and both write 13: a lost update, and two instructors sharing an ID. `$inc` is
 a single atomic operation inside MongoDB, so every caller is guaranteed a
 distinct number.
 
@@ -370,7 +365,7 @@ confirming re-sends the save with `confirmDuplicate: true`.
 
 **Why not simply reject duplicates?** Because the specification is explicit that
 two instructors may genuinely share a name. A duplicate is a question, not an
-error — which is why the server answers `409 Conflict` with a
+error, which is why the server answers `409 Conflict` with a
 `requiresConfirmation` flag rather than a `400`, and why the UI renders it as a
 warning with two buttons rather than a red validation message.
 
@@ -383,8 +378,8 @@ having done so, and a rule that exists only in the UI is not a rule.
 **Decision.** The controller builds the document, validates every field except
 the ID, *then* asks the counter for a number, then saves.
 
-**Why it matters.** The obvious ordering — generate the ID first, then save and
-let validation fail — consumes a counter number on every rejected submission. A
+**Why it matters.** The obvious ordering, generating the ID first and letting
+the save fail validation, consumes a counter number on every rejected submission. A
 manager who mistypes twice would see the next instructor saved as `I00004`
 instead of `I00002`. The gaps are harmless to the database but look like lost
 records to the studio.
@@ -430,7 +425,7 @@ Express. In production a build step compiles the React app and Express serves
 the result alongside the API, as one web process.
 
 **Why.** One repository means one GitHub project, one Heroku application and
-one pipeline — the simplest thing that satisfies the Part 2 requirements. And
+one pipeline, the simplest thing that satisfies the Part 2 requirements. And
 because the frontend only ever uses relative URLs such as `/api/instructors`,
 **no application code differs between development and production.** The proxy
 exists precisely so that the development-only difference stays in configuration
@@ -467,7 +462,7 @@ actually used, rather than merely present.
   the right HTTP status and a JSON body the UI can render. Unexpected errors
   are logged in full but returned as a generic message, so that internal paths
   and stack frames never reach a browser.
-- **Layered structure** — `routes / controllers / services / models` — so that
+- **Layered structure** (`routes / controllers / services / models`), so that
   each file answers one question: which URL, what rule, what shared capability,
   what shape of data.
 - **ES modules throughout**, server and client, rather than the common mix of
@@ -485,8 +480,8 @@ actually used, rather than merely present.
 - **React Router** for client-side navigation, with a shared layout rendered
   once around every page.
 - **A single API layer.** No component contains a URL; they call named
-  functions in `src/api/`. Note that `fetch` does *not* reject on a 4xx — a
-  `400` is a perfectly successful round trip as far as `fetch` is concerned —
+  functions in `src/api/`. Note that `fetch` does *not* reject on a 4xx. A
+  `400` is a perfectly successful round trip as far as `fetch` is concerned,
   so the status is checked explicitly and converted into a typed `ApiError`
   that carries the server's per-field messages.
 
@@ -504,7 +499,7 @@ actually used, rather than merely present.
 | `String.format("%05d", n)` | `String(n).padStart(5, '0')` |
 
 The largest genuine difference is **asynchrony**. Almost every database call
-returns a `Promise` — a placeholder for a value that is not ready yet — and
+returns a `Promise`, a placeholder for a value that is not ready yet, and
 `await` suspends the function until it settles. Code after an `await` is
 guaranteed to see the result; code that forgets the `await` silently receives
 the `Promise` object instead of the value, which is the single most common
@@ -561,7 +556,7 @@ yogitrack/
 
 **Commenting.** Every file opens with a block explaining what it is, why it
 exists and how it connects to the others. Comments in the body explain
-*reasoning* rather than restating the code — why the routes are ordered as they
+*reasoning* rather than restating the code: why the routes are ordered as they
 are, why an error handler needs four parameters, why an effect's dependency
 array is empty. Anything that differs from Java is called out where it appears.
 
@@ -625,7 +620,7 @@ top, and they clear as soon as the manager starts correcting that field. A
 message that stays put while its field is being fixed reads as broken.
 
 **The interface never looks idle while it is working.** Buttons are disabled
-and relabelled through each stage — "Checking name…", then "Saving…" — so a
+and relabelled through each stage ("Checking name…", then "Saving…"), so a
 slow network produces a visibly busy screen rather than a dead one.
 
 ## 10. Testing and verification
@@ -732,8 +727,8 @@ the real platform reveals.
 
 **The first deploy failed to build:** `sh: 1: vite: not found`. Heroku sets
 `NODE_ENV=production` for the build, and npm omits `devDependencies` when it
-is set. Vite is a devDependency — correctly, since it is a build tool and not
-a runtime dependency — so the client had no bundler.
+is set. Vite is a devDependency, correctly so, since it is a build tool and
+not a runtime dependency. The result was that the client had no bundler.
 
 The fix was `npm ci --prefix client --include=dev` rather than moving Vite
 into `dependencies`, which would have misfiled a build tool to work around a
@@ -750,8 +745,8 @@ it.
 
 This one is worth noting because the application behaved exactly as designed.
 `server.js` connects to the database *before* it starts listening, and exits
-with a clear message if that fails. The alternative — listening first and
-discovering the problem on the first request — would have produced a running
+with a clear message if that fails. The alternative, listening first and
+discovering the problem on the first request, would have produced a running
 app that returned confusing errors on every endpoint. The crash was the
 correct outcome, and the log line named the cause precisely.
 
@@ -784,16 +779,16 @@ application would have worked while writing to the wrong place.
 |---|---|---|
 | 5 | How long is a class? Required for UC2's conflict check; the specification never says. | UC2 |
 | 10 | Are the diagram-only use cases (Publish/View Schedule, View Attendance) in scope? | Part 2 scoping |
-| 11 | Which report list governs — the diagram's five or written UC7's four? Worth asking the instructor. | UC7 |
-| 12 | How are Manager and Instructor distinguished — a role selector or real login? | UC6 |
+| 11 | Which report list governs: the diagram's five, or written UC7's four? Worth asking the instructor. | UC7 |
+| 12 | How are Manager and Instructor distinguished: a role selector, or real login? | UC6 |
 
 ### 12.3 Part 2 plan
 
-1. UC2 Add Class — schedule-conflict detection and alternative suggestions.
-2. UC5 Record Sale — validation against the package rate, balance update.
-3. UC6 Record Attendance — instructor view, schedule-mismatch warning,
+1. UC2 Add Class: schedule-conflict detection and alternative suggestions.
+2. UC5 Record Sale: validation against the package rate, balance update.
+3. UC6 Record Attendance: instructor view, schedule-mismatch warning,
    deliberate negative-balance override, check-in messages.
-4. UC7 Reports — MongoDB aggregation pipelines.
+4. UC7 Reports: MongoDB aggregation pipelines.
 5. Modify and delete for the Part 1 entities, with deactivation rather than
    deletion where records are referenced.
 6. Real message delivery behind the existing messaging interface.
@@ -801,23 +796,23 @@ application would have worked while writing to the wrong place.
 
 ---
 
-## Appendix A — API reference
+## Appendix A: API reference
 
 All endpoints are under `/api` so that they can never collide with a React page
 route.
 
 | Method | Path | Purpose | Success | Errors |
 |---|---|---|---|---|
-| `GET` | `/api/health` | Liveness check | `200` | — |
-| `GET` | `/api/instructors` | List all, newest first | `200` | — |
+| `GET` | `/api/health` | Liveness check | `200` | None |
+| `GET` | `/api/instructors` | List all, newest first | `200` | None |
 | `GET` | `/api/instructors/check-name?firstName=&lastName=` | Duplicate check (UC1 step 2) | `200` `{exists, count, matches}` | `400` if a name is missing |
 | `GET` | `/api/instructors/:instructorId` | One instructor by readable ID | `200` | `404` |
 | `POST` | `/api/instructors` | Create (UC1) | `201` `{instructor, notification}` | `400` per-field; `409` `requiresConfirmation` |
-| `GET` | `/api/customers` | List all, newest first | `200` | — |
+| `GET` | `/api/customers` | List all, newest first | `200` | None |
 | `GET` | `/api/customers/check-name?firstName=&lastName=` | Duplicate check (UC4 step 2) | `200` `{exists, count, matches}` | `400` if a name is missing |
 | `GET` | `/api/customers/:customerId` | One customer by readable ID | `200` | `404` |
 | `POST` | `/api/customers` | Create (UC4) | `201` `{customer, notification}` | `400` per-field; `409` `requiresConfirmation` |
-| `GET` | `/api/packages` | List all, newest first | `200` | — |
+| `GET` | `/api/packages` | List all, newest first | `200` | None |
 | `GET` | `/api/packages/:packageId` | One package by readable ID | `200` | `404` |
 | `POST` | `/api/packages` | Create (UC3) | `201` `{package}` | `400` per-field |
 
@@ -828,7 +823,7 @@ the identical body with `confirmDuplicate: true` to proceed.
 
 ---
 
-## Appendix B — running the project
+## Appendix B: running the project
 
 ### Prerequisites
 - Node.js 24 or newer
