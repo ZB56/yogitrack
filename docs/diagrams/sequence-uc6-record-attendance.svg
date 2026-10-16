@@ -1,0 +1,162 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 1010" width="1160" height="1010" font-family="Helvetica, Arial, sans-serif">
+  <title>UC6 Record class attendance sequence diagram</title>
+  <desc>UML sequence diagram for the Record Class Attendance use case, including the preview that warns about the schedule and the balance, and the confirmation branch that allows a negative balance.</desc>
+
+  <defs>
+    <marker id="solid" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#3a5840"/>
+    </marker>
+    <marker id="open" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10" fill="none" stroke="#6b746d" stroke-width="1.4"/>
+    </marker>
+  </defs>
+
+  <style>
+    .lane      { fill:#e5ede6; stroke:#3a5840; stroke-width:1.6; }
+    .lane-ext  { fill:#f6ece6; stroke:#b4714d; stroke-width:1.6; }
+    .lname     { font-size:12.5px; font-weight:700; fill:#1c211d; text-anchor:middle; }
+    .lsub      { font-size:10px; fill:#6b746d; text-anchor:middle; font-family:"SF Mono", Menlo, monospace; }
+    .life      { stroke:#a8afaa; stroke-width:1.2; stroke-dasharray:5 5; }
+    .act       { fill:#e5ede6; stroke:#3a5840; stroke-width:1.1; }
+    .call      { stroke:#3a5840; stroke-width:1.5; fill:none; }
+    .ret       { stroke:#6b746d; stroke-width:1.3; fill:none; stroke-dasharray:6 4; }
+    .msg       { font-size:11.5px; fill:#1c211d; }
+    .msgm      { font-size:11px; fill:#3d453f; font-family:"SF Mono", Menlo, monospace; }
+    .retm      { font-size:11px; fill:#6b746d; font-style:italic; }
+    .frame     { fill:none; stroke:#8a5c14; stroke-width:1.3; }
+    .frametag  { fill:#fdf4e3; stroke:#8a5c14; stroke-width:1.3; }
+    .frametxt  { font-size:11px; font-weight:700; fill:#8a5c14; }
+    .guard     { font-size:11px; fill:#8a5c14; font-style:italic; }
+    .step      { font-size:10px; fill:#4a7050; font-weight:700; }
+    .note      { fill:#fdf4e3; stroke:#d8bc7f; stroke-width:1.2; }
+    .notetxt   { font-size:11px; fill:#8a5c14; }
+  </style>
+
+  <!-- ============ LIFELINE HEADERS ============ -->
+  <rect class="lane" x="20" y="34" width="130" height="52" rx="4"/>
+  <text class="lname" x="85" y="56">Instructor</text>
+  <text class="lsub" x="85" y="72">«actor»</text>
+
+  <rect class="lane" x="205" y="34" width="200" height="52" rx="4"/>
+  <text class="lname" x="305" y="56">Attendance sheet</text>
+  <text class="lsub" x="305" y="72">RecordAttendance.jsx</text>
+
+  <rect class="lane" x="455" y="34" width="210" height="52" rx="4"/>
+  <text class="lname" x="560" y="56">Express controller</text>
+  <text class="lsub" x="560" y="72">attendanceController.js</text>
+
+  <rect class="lane" x="725" y="34" width="170" height="52" rx="4"/>
+  <text class="lname" x="810" y="56">Services</text>
+  <text class="lsub" x="810" y="72">messaging</text>
+
+  <rect class="lane-ext" x="965" y="34" width="170" height="52" rx="4"/>
+  <text class="lname" x="1050" y="56">MongoDB</text>
+  <text class="lsub" x="1050" y="72">via Mongoose</text>
+
+  <!-- ============ LIFELINES ============ -->
+  <line class="life" x1="85"   y1="86" x2="85"   y2="930"/>
+  <line class="life" x1="305"  y1="86" x2="305"  y2="930"/>
+  <line class="life" x1="560"  y1="86" x2="560"  y2="930"/>
+  <line class="life" x1="810"  y1="86" x2="810"  y2="930"/>
+  <line class="life" x1="1050" y1="86" x2="1050" y2="930"/>
+
+  <!-- ============ ACTIVATION BARS ============ -->
+  <rect class="act" x="299" y="110" width="12" height="800"/>
+  <rect class="act" x="554" y="150" width="12" height="130"/>
+  <rect class="act" x="554" y="360" width="12" height="60"/>
+  <rect class="act" x="554" y="600" width="12" height="270"/>
+  <rect class="act" x="804" y="700" width="12" height="60"/>
+
+  <!-- ============ STEPS 3, 4 and 6 ============ -->
+  <text class="step" x="24" y="106">steps 3, 4, 6</text>
+  <path class="call" d="M85 122 H299" marker-end="url(#solid)"/>
+  <text class="msg" x="96" y="117">choose the class, the date and time, tick the names</text>
+
+  <!-- preview request -->
+  <path class="call" d="M311 162 H554" marker-end="url(#solid)"/>
+  <text class="msgm" x="322" y="157">POST /api/attendance/preview</text>
+
+  <path class="call" d="M566 196 H1050" marker-end="url(#solid)"/>
+  <text class="msgm" x="578" y="191">find class, customers, their sales</text>
+
+  <path class="ret" d="M1050 230 H566" marker-end="url(#open)"/>
+  <text class="retm" x="578" y="225">documents</text>
+
+  <text class="step" x="578" y="258">steps 5 and 8, before anything is saved</text>
+  <path class="ret" d="M554 272 H311" marker-end="url(#open)"/>
+  <text class="retm" x="322" y="267">balance effect per person, schedule warning</text>
+
+  <path class="ret" d="M299 306 H85" marker-end="url(#open)"/>
+  <text class="retm" x="96" y="301">"scheduled for Tuesday 09:00, sheet says Thursday"</text>
+
+  <!-- ============ STEP 7: SAVE ============ -->
+  <text class="step" x="24" y="340">step 7</text>
+  <path class="call" d="M85 352 H299" marker-end="url(#solid)"/>
+  <text class="msg" x="96" y="347">save the attendance</text>
+
+  <path class="call" d="M311 384 H554" marker-end="url(#solid)"/>
+  <text class="msgm" x="322" y="379">POST /api/attendance</text>
+
+  <path class="call" d="M566 412 H1050" marker-end="url(#solid)"/>
+  <text class="msgm" x="578" y="407">re-read the class, customers and sales</text>
+
+  <!-- ============ ALT FRAME: STEP 8 ============ -->
+  <rect class="frame" x="60" y="440" width="1020" height="140" rx="3"/>
+  <path class="frametag" d="M60 440 h70 v22 l-10 10 H60 z"/>
+  <text class="frametxt" x="72" y="456">alt</text>
+  <text class="guard" x="140" y="456">[ a customer has no classes left — UC6 step 8 ]</text>
+
+  <path class="ret" d="M554 486 H311" marker-end="url(#open)"/>
+  <text class="retm" x="322" y="481">409 Conflict, requiresConfirmation, the names and balances</text>
+
+  <path class="ret" d="M299 514 H85" marker-end="url(#open)"/>
+  <text class="retm" x="96" y="509">"Dev Tester has no classes left. Check them in anyway?"</text>
+
+  <path class="call" d="M85 546 H299" marker-end="url(#solid)"/>
+  <text class="msg" x="96" y="541">check them in anyway</text>
+
+  <path class="call" d="M311 572 H554" marker-end="url(#solid)"/>
+  <text class="msgm" x="322" y="567">POST /api/attendance { allowNegativeBalance: true }</text>
+
+  <!-- ============ STEPS 9 and 10 ============ -->
+  <text class="step" x="578" y="620">steps 9 and 10</text>
+  <path class="call" d="M566 634 H1050" marker-end="url(#solid)"/>
+  <text class="msgm" x="578" y="629">save the Attendance sheet (balanceBefore / balanceAfter per person)</text>
+
+  <path class="call" d="M566 668 H1050" marker-end="url(#solid)"/>
+  <text class="msgm" x="578" y="663">$inc classBalance by -1, for everyone not on an unlimited package</text>
+
+  <!-- ============ LOOP FRAME: MESSAGES ============ -->
+  <rect class="frame" x="520" y="686" width="560" height="100" rx="3"/>
+  <path class="frametag" d="M520 686 h80 v22 l-10 10 H520 z"/>
+  <text class="frametxt" x="532" y="702">loop</text>
+  <text class="guard" x="610" y="702">[ for each attendee ]</text>
+
+  <path class="call" d="M566 730 H804" marker-end="url(#solid)"/>
+  <text class="msgm" x="578" y="725">checkInMessage(firstName, heldAt, balance)</text>
+
+  <path class="ret" d="M804 762 H566" marker-end="url(#open)"/>
+  <text class="retm" x="578" y="757">"Hello Priya! ... Your class-balance is 15."</text>
+
+  <!-- ============ RESPONSE ============ -->
+  <path class="ret" d="M554 816 H311" marker-end="url(#open)"/>
+  <text class="retm" x="322" y="811">201 Created: the sheet, and every message that was sent</text>
+
+  <path class="ret" d="M299 850 H85" marker-end="url(#open)"/>
+  <text class="retm" x="96" y="845">"A00003 saved: 2 checked in", with each confirmation shown</text>
+
+  <!-- ============ NOTES ============ -->
+  <path class="note" d="M20 886 h560 l18 18 v56 H20 z"/>
+  <path class="note" d="M580 886 v18 h18 z"/>
+  <text class="notetxt" x="32" y="906">The preview and the save run the SAME assessment, so the</text>
+  <text class="notetxt" x="32" y="922">warning the instructor saw and the balance that is written</text>
+  <text class="notetxt" x="32" y="938">cannot disagree. The save repeats it because the browser is</text>
+  <text class="notetxt" x="32" y="954">not where a rule can live.</text>
+
+  <path class="note" d="M620 886 h500 l18 18 v56 H620 z"/>
+  <path class="note" d="M1120 886 v18 h18 z"/>
+  <text class="notetxt" x="632" y="906">Messages are logged, not delivered (decision 3). The sheet</text>
+  <text class="notetxt" x="632" y="922">is written BEFORE the balances: a failure then leaves a</text>
+  <text class="notetxt" x="632" y="938">visible sheet with an un-deducted balance, which a manager</text>
+  <text class="notetxt" x="632" y="954">can see and fix, rather than the reverse.</text>
+</svg>

@@ -50,8 +50,9 @@
   <rect class="comp" x="240" y="92" width="165" height="96" rx="5"/>
   <text class="ctitle" x="322" y="116">Middleware</text>
   <text class="cfile" x="322" y="132">server/middleware/</text>
-  <text class="cdesc" x="322" y="152">cors, express.json,</text>
-  <text class="cdesc" x="322" y="166">error handler</text>
+  <text class="cdesc" x="322" y="148">cors, express.json,</text>
+  <text class="cdesc" x="322" y="162">requireAuth, requireRole,</text>
+  <text class="cdesc" x="322" y="176">error handler</text>
 
   <!-- Router -->
   <rect class="comp" x="440" y="92" width="145" height="96" rx="5"/>
@@ -90,11 +91,12 @@
   <path class="flow-db" d="M975 140 H1010" marker-end="url(#ao)"/>
 
   <!-- Services hanging off the controller -->
-  <rect class="comp-svc" x="600" y="240" width="205" height="80" rx="5"/>
+  <rect class="comp-svc" x="600" y="240" width="205" height="96" rx="5"/>
   <text class="ctitle" x="702" y="262">Services</text>
   <text class="cfile" x="702" y="277">server/services/</text>
-  <text class="cdesc" x="702" y="296">idGenerator: atomic I/C/P ids</text>
+  <text class="cdesc" x="702" y="296">idGenerator: atomic ids</text>
   <text class="cdesc" x="702" y="310">messaging: confirmations</text>
+  <text class="cdesc" x="702" y="324">tokens: sign and verify JWT</text>
   <path class="flow" d="M702 188 V240" marker-end="url(#a)"/>
 
   <!-- note on the return path -->

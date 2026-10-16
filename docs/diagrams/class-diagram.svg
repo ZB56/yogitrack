@@ -1,174 +1,240 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 880" width="1120" height="880" font-family="Helvetica, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1000" width="1200" height="1000" font-family="Helvetica, Arial, sans-serif">
   <title>YogiTrack domain class diagram</title>
-  <desc>UML class diagram of the seven YogiTrack collections and their associations.</desc>
+  <desc>UML class diagram of the eight YogiTrack collections, the embedded attendee record, and their associations, after Part 2.</desc>
 
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#3a5840"/>
     </marker>
+    <marker id="diamond" viewBox="0 0 14 10" refX="1" refY="5" markerWidth="12" markerHeight="10" orient="auto">
+      <path d="M 0 5 L 7 0 L 14 5 L 7 10 z" fill="#3a5840"/>
+    </marker>
   </defs>
 
   <style>
     .box       { fill:#ffffff; stroke:#3a5840; stroke-width:1.6; }
-    .box-p2    { fill:#ffffff; stroke:#8a9a8c; stroke-width:1.6; stroke-dasharray:6 4; }
+    .box-p2    { fill:#ffffff; stroke:#4a7050; stroke-width:1.6; }
     .hdr       { fill:#e5ede6; stroke:#3a5840; stroke-width:1.6; }
-    .hdr-p2    { fill:#f2f5f2; stroke:#8a9a8c; stroke-width:1.6; stroke-dasharray:6 4; }
+    .hdr-p2    { fill:#f6ece6; stroke:#4a7050; stroke-width:1.6; }
     .cname     { font-size:15px; font-weight:700; fill:#1c211d; text-anchor:middle; }
     .stereo    { font-size:10.5px; fill:#6b746d; text-anchor:middle; font-style:italic; }
     .attr      { font-size:11.5px; fill:#3d453f; font-family:"SF Mono", Menlo, Consolas, monospace; }
     .op        { font-size:11.5px; fill:#4a7050; font-family:"SF Mono", Menlo, Consolas, monospace; font-style:italic; }
     .sep       { stroke:#3a5840; stroke-width:1; }
-    .sep-p2    { stroke:#8a9a8c; stroke-width:1; stroke-dasharray:6 4; }
+    .sep-p2    { stroke:#4a7050; stroke-width:1; }
     .edge      { stroke:#3a5840; stroke-width:1.5; fill:none; }
     .mult      { font-size:11px; fill:#3a5840; font-weight:600; }
     .role      { font-size:11px; fill:#6b746d; font-style:italic; }
     .legend    { font-size:12px; fill:#3d453f; }
     .note      { fill:#fdf4e3; stroke:#d8bc7f; stroke-width:1.2; }
     .notetxt   { font-size:11px; fill:#8a5c14; }
+    .enumbox   { fill:#f4f7f4; stroke:#c9dbcb; stroke-width:1.2; }
+    .enumtxt   { font-size:11px; fill:#3d453f; font-family:"SF Mono", Menlo, Consolas, monospace; }
   </style>
 
+  <!-- ===================== USER (Part 2) ===================== -->
+  <rect class="box-p2" x="40" y="60" width="260" height="194" rx="4"/>
+  <path class="hdr-p2" d="M40 64 a4 4 0 0 1 4 -4 h252 a4 4 0 0 1 4 4 v34 h-260 z"/>
+  <line class="sep-p2" x1="40" y1="98" x2="300" y2="98"/>
+  <text class="cname" x="170" y="84">User</text>
+  <text class="stereo" x="170" y="111">(Part 2, decision 12)</text>
+  <text class="attr" x="52" y="131">- username : String {unique}</text>
+  <text class="attr" x="52" y="148">- passwordHash : String</text>
+  <text class="attr" x="52" y="165">- role : Role</text>
+  <text class="attr" x="52" y="182">- instructorId : String «FK» | null</text>
+  <text class="attr" x="52" y="199">- active : Boolean = true</text>
+  <text class="attr" x="52" y="216">- lastLoginAt : Date | null</text>
+  <line class="sep-p2" x1="40" y1="226" x2="300" y2="226"/>
+  <text class="op" x="52" y="244">verifyPassword(plain) : Boolean</text>
+
   <!-- ===================== INSTRUCTOR (Part 1) ===================== -->
-  <rect class="box" x="40" y="50" width="250" height="218" rx="4"/>
-  <path class="hdr" d="M40 54 a4 4 0 0 1 4 -4 h242 a4 4 0 0 1 4 4 v34 h-250 z"/>
-  <line class="sep" x1="40" y1="88" x2="290" y2="88"/>
-  <text class="cname" x="165" y="74">Instructor</text>
-  <text class="attr" x="52" y="108">- instructorId : String {unique}</text>
-  <text class="attr" x="52" y="125">- firstName : String</text>
-  <text class="attr" x="52" y="142">- lastName : String</text>
-  <text class="attr" x="52" y="159">- address : String</text>
-  <text class="attr" x="52" y="176">- phone : String</text>
-  <text class="attr" x="52" y="193">- email : String</text>
-  <text class="attr" x="52" y="210">- preferredContact : ContactMode</text>
-  <text class="attr" x="52" y="227">- active : Boolean = true</text>
-  <line class="sep" x1="40" y1="238" x2="290" y2="238"/>
-  <text class="op" x="52" y="256">/ fullName : String</text>
+  <rect class="box" x="350" y="60" width="260" height="218" rx="4"/>
+  <path class="hdr" d="M350 64 a4 4 0 0 1 4 -4 h252 a4 4 0 0 1 4 4 v34 h-260 z"/>
+  <line class="sep" x1="350" y1="98" x2="610" y2="98"/>
+  <text class="cname" x="480" y="84">Instructor</text>
+  <text class="attr" x="362" y="118">- instructorId : String {unique}</text>
+  <text class="attr" x="362" y="135">- firstName : String</text>
+  <text class="attr" x="362" y="152">- lastName : String</text>
+  <text class="attr" x="362" y="169">- address : String</text>
+  <text class="attr" x="362" y="186">- phone : String</text>
+  <text class="attr" x="362" y="203">- email : String</text>
+  <text class="attr" x="362" y="220">- preferredContact : ContactMode</text>
+  <text class="attr" x="362" y="237">- active : Boolean = true</text>
+  <line class="sep" x1="350" y1="248" x2="610" y2="248"/>
+  <text class="op" x="362" y="266">/ fullName : String</text>
 
   <!-- ===================== CUSTOMER (Part 1) ===================== -->
-  <rect class="box" x="420" y="50" width="250" height="218" rx="4"/>
-  <path class="hdr" d="M420 54 a4 4 0 0 1 4 -4 h242 a4 4 0 0 1 4 4 v34 h-250 z"/>
-  <line class="sep" x1="420" y1="88" x2="670" y2="88"/>
-  <text class="cname" x="545" y="74">Customer</text>
-  <text class="attr" x="432" y="108">- customerId : String {unique}</text>
-  <text class="attr" x="432" y="125">- firstName : String</text>
-  <text class="attr" x="432" y="142">- lastName : String</text>
-  <text class="attr" x="432" y="159">- address : String</text>
-  <text class="attr" x="432" y="176">- phone : String</text>
-  <text class="attr" x="432" y="193">- email : String</text>
-  <text class="attr" x="432" y="210">- preferredContact : ContactMode</text>
-  <text class="attr" x="432" y="227">- classBalance : Number = 0</text>
-  <line class="sep" x1="420" y1="238" x2="670" y2="238"/>
-  <text class="op" x="432" y="256">/ fullName : String</text>
+  <rect class="box" x="660" y="60" width="260" height="218" rx="4"/>
+  <path class="hdr" d="M660 64 a4 4 0 0 1 4 -4 h252 a4 4 0 0 1 4 4 v34 h-260 z"/>
+  <line class="sep" x1="660" y1="98" x2="920" y2="98"/>
+  <text class="cname" x="790" y="84">Customer</text>
+  <text class="attr" x="672" y="118">- customerId : String {unique}</text>
+  <text class="attr" x="672" y="135">- firstName : String</text>
+  <text class="attr" x="672" y="152">- lastName : String</text>
+  <text class="attr" x="672" y="169">- address : String</text>
+  <text class="attr" x="672" y="186">- phone : String</text>
+  <text class="attr" x="672" y="203">- email : String</text>
+  <text class="attr" x="672" y="220">- preferredContact : ContactMode</text>
+  <text class="attr" x="672" y="237">- classBalance : Number = 0</text>
+  <line class="sep" x1="660" y1="248" x2="920" y2="248"/>
+  <text class="op" x="672" y="266">/ fullName : String</text>
 
   <!-- ===================== PACKAGE (Part 1) ===================== -->
-  <rect class="box" x="800" y="50" width="270" height="218" rx="4"/>
-  <path class="hdr" d="M800 54 a4 4 0 0 1 4 -4 h262 a4 4 0 0 1 4 4 v34 h-270 z"/>
-  <line class="sep" x1="800" y1="88" x2="1070" y2="88"/>
-  <text class="cname" x="935" y="74">Package</text>
-  <text class="attr" x="812" y="108">- packageId : String {unique}</text>
-  <text class="attr" x="812" y="125">- name : String</text>
-  <text class="attr" x="812" y="142">- category : PackageCategory</text>
-  <text class="attr" x="812" y="159">- numClasses : Number | null</text>
-  <text class="attr" x="812" y="176">- unlimited : Boolean = false</text>
-  <text class="attr" x="812" y="193">- classType : ClassType</text>
-  <text class="attr" x="812" y="210">- startDate : Date</text>
-  <text class="attr" x="812" y="227">- endDate : Date</text>
-  <text class="attr" x="812" y="244">- price : Number</text>
+  <rect class="box" x="950" y="60" width="210" height="218" rx="4"/>
+  <path class="hdr" d="M950 64 a4 4 0 0 1 4 -4 h202 a4 4 0 0 1 4 4 v34 h-210 z"/>
+  <line class="sep" x1="950" y1="98" x2="1160" y2="98"/>
+  <text class="cname" x="1055" y="84">Package</text>
+  <text class="attr" x="962" y="118">- packageId {unique}</text>
+  <text class="attr" x="962" y="135">- name : String</text>
+  <text class="attr" x="962" y="152">- category : Category</text>
+  <text class="attr" x="962" y="169">- numClasses : Number?</text>
+  <text class="attr" x="962" y="186">- unlimited : Boolean</text>
+  <text class="attr" x="962" y="203">- classType : ClassType</text>
+  <text class="attr" x="962" y="220">- startDate, endDate</text>
+  <text class="attr" x="962" y="237">- price : Number</text>
 
   <!-- ===================== CLASS (Part 2) ===================== -->
-  <rect class="box-p2" x="40" y="348" width="250" height="160" rx="4"/>
-  <path class="hdr-p2" d="M40 352 a4 4 0 0 1 4 -4 h242 a4 4 0 0 1 4 4 v34 h-250 z"/>
-  <line class="sep-p2" x1="40" y1="386" x2="290" y2="386"/>
-  <text class="cname" x="165" y="366">Class</text>
-  <text class="stereo" x="165" y="399">(Part 2)</text>
-  <text class="attr" x="52" y="419">- classId : String {unique}</text>
-  <text class="attr" x="52" y="436">- instructorId : String «FK»</text>
-  <text class="attr" x="52" y="453">- day, time</text>
-  <text class="attr" x="52" y="470">- durationMinutes : Number</text>
-  <text class="attr" x="52" y="487">- classType : ClassType</text>
-  <text class="attr" x="52" y="504">- payRate : Number</text>
+  <rect class="box-p2" x="40" y="370" width="260" height="177" rx="4"/>
+  <path class="hdr-p2" d="M40 374 a4 4 0 0 1 4 -4 h252 a4 4 0 0 1 4 4 v34 h-260 z"/>
+  <line class="sep-p2" x1="40" y1="408" x2="300" y2="408"/>
+  <text class="cname" x="170" y="394">Class</text>
+  <text class="stereo" x="170" y="421">(Part 2, UC2)</text>
+  <text class="attr" x="52" y="441">- classId : String {unique}</text>
+  <text class="attr" x="52" y="458">- instructorId : String «FK»</text>
+  <text class="attr" x="52" y="475">- day : Day, time : "HH:MM"</text>
+  <text class="attr" x="52" y="492">- durationMinutes : Number = 60</text>
+  <text class="attr" x="52" y="509">- classType : ClassType</text>
+  <text class="attr" x="52" y="526">- payRate : Number</text>
 
   <!-- ===================== SALE (Part 2) ===================== -->
-  <rect class="box-p2" x="620" y="348" width="250" height="177" rx="4"/>
-  <path class="hdr-p2" d="M620 352 a4 4 0 0 1 4 -4 h242 a4 4 0 0 1 4 4 v34 h-250 z"/>
-  <line class="sep-p2" x1="620" y1="386" x2="870" y2="386"/>
-  <text class="cname" x="745" y="366">Sale</text>
-  <text class="stereo" x="745" y="399">(Part 2)</text>
-  <text class="attr" x="632" y="419">- saleId : String {unique}</text>
-  <text class="attr" x="632" y="436">- customerId : String «FK»</text>
-  <text class="attr" x="632" y="453">- packageId : String «FK»</text>
-  <text class="attr" x="632" y="470">- amountPaid : Number</text>
-  <text class="attr" x="632" y="487">- paymentMode : String</text>
-  <text class="attr" x="632" y="504">- paidAt, validFrom, validTo</text>
+  <rect class="box-p2" x="360" y="370" width="290" height="245" rx="4"/>
+  <path class="hdr-p2" d="M360 374 a4 4 0 0 1 4 -4 h282 a4 4 0 0 1 4 4 v34 h-290 z"/>
+  <line class="sep-p2" x1="360" y1="408" x2="650" y2="408"/>
+  <text class="cname" x="505" y="394">Sale</text>
+  <text class="stereo" x="505" y="421">(Part 2, UC5)</text>
+  <text class="attr" x="372" y="441">- saleId : String {unique}</text>
+  <text class="attr" x="372" y="458">- customerId : String «FK»</text>
+  <text class="attr" x="372" y="475">- packageId : String «FK»</text>
+  <text class="attr" x="372" y="492">- packageName : String</text>
+  <text class="attr" x="372" y="509">- classesPurchased : Number?</text>
+  <text class="attr" x="372" y="526">- unlimited : Boolean</text>
+  <text class="attr" x="372" y="543">- classType : ClassType</text>
+  <text class="attr" x="372" y="560">- amountPaid, paymentMode</text>
+  <text class="attr" x="372" y="577">- paidAt, validFrom, validTo</text>
+  <line class="sep-p2" x1="360" y1="587" x2="650" y2="587"/>
+  <text class="op" x="372" y="605">/ status : active|future|expired</text>
 
-  <!-- ===================== ATTENDANCE (Part 2) ===================== -->
-  <rect class="box-p2" x="300" y="596" width="300" height="143" rx="4"/>
-  <path class="hdr-p2" d="M300 600 a4 4 0 0 1 4 -4 h292 a4 4 0 0 1 4 4 v34 h-300 z"/>
-  <line class="sep-p2" x1="300" y1="634" x2="600" y2="634"/>
-  <text class="cname" x="450" y="614">Attendance</text>
-  <text class="stereo" x="450" y="647">(Part 2)</text>
-  <text class="attr" x="312" y="667">- classId : String «FK»</text>
-  <text class="attr" x="312" y="684">- instructorId : String «FK»</text>
-  <text class="attr" x="312" y="701">- heldAt : Date</text>
-  <text class="attr" x="312" y="718">- customerIds : String[ ] «FK»</text>
+  <!-- Sale snapshot note -->
+  <path class="note" d="M690 370 h180 l20 20 v94 h-200 z"/>
+  <path class="note" d="M870 370 v20 h20 z"/>
+  <text class="notetxt" x="702" y="412">The four shaded fields are</text>
+  <text class="notetxt" x="702" y="428">copied from the Package at</text>
+  <text class="notetxt" x="702" y="444">the moment of sale. A package</text>
+  <text class="notetxt" x="702" y="460">is editable; a sale is history.</text>
+  <text class="notetxt" x="702" y="476">Decision 16.</text>
 
   <!-- ===================== COUNTER (Part 1) ===================== -->
-  <rect class="box" x="800" y="596" width="270" height="92" rx="4"/>
-  <path class="hdr" d="M800 600 a4 4 0 0 1 4 -4 h262 a4 4 0 0 1 4 4 v34 h-270 z"/>
-  <line class="sep" x1="800" y1="634" x2="1070" y2="634"/>
-  <text class="cname" x="935" y="620">Counter</text>
-  <text class="attr" x="812" y="654">- _id : String  // "instructor"</text>
-  <text class="attr" x="812" y="671">- seq : Number</text>
+  <rect class="box" x="950" y="370" width="210" height="92" rx="4"/>
+  <path class="hdr" d="M950 374 a4 4 0 0 1 4 -4 h202 a4 4 0 0 1 4 4 v34 h-210 z"/>
+  <line class="sep" x1="950" y1="408" x2="1160" y2="408"/>
+  <text class="cname" x="1055" y="394">Counter</text>
+  <text class="attr" x="962" y="428">- _id : String</text>
+  <text class="attr" x="962" y="445">- seq : Number</text>
 
-  <!-- Counter note -->
-  <path class="note" d="M800 706 h250 l20 20 v42 h-270 z"/>
-  <path class="note" d="M1050 706 v20 h20 z"/>
-  <text class="notetxt" x="812" y="726">Supplies every I/C/P/L/S id by</text>
-  <text class="notetxt" x="812" y="742">atomic $inc. Not a domain entity;</text>
-  <text class="notetxt" x="812" y="758">shown because it is a collection.</text>
+  <path class="note" d="M950 486 h190 l20 20 v58 h-210 z"/>
+  <path class="note" d="M1140 486 v20 h20 z"/>
+  <text class="notetxt" x="962" y="508">Supplies every I/C/P/L/S/A</text>
+  <text class="notetxt" x="962" y="524">id by atomic $inc. Not a</text>
+  <text class="notetxt" x="962" y="540">domain entity.</text>
+
+  <!-- ===================== ATTENDANCE (Part 2) ===================== -->
+  <rect class="box-p2" x="40" y="690" width="280" height="160" rx="4"/>
+  <path class="hdr-p2" d="M40 694 a4 4 0 0 1 4 -4 h272 a4 4 0 0 1 4 4 v34 h-280 z"/>
+  <line class="sep-p2" x1="40" y1="728" x2="320" y2="728"/>
+  <text class="cname" x="180" y="714">Attendance</text>
+  <text class="stereo" x="180" y="741">(Part 2, UC6)</text>
+  <text class="attr" x="52" y="761">- attendanceId : String {unique}</text>
+  <text class="attr" x="52" y="778">- classId : String «FK»</text>
+  <text class="attr" x="52" y="795">- instructorId : String «FK»</text>
+  <text class="attr" x="52" y="812">- heldAt : Date</text>
+  <text class="attr" x="52" y="829">- attendees : Attendee [1..*]</text>
+
+  <!-- ===================== ATTENDEE (embedded) ===================== -->
+  <rect class="box-p2" x="420" y="690" width="280" height="160" rx="4"/>
+  <path class="hdr-p2" d="M420 694 a4 4 0 0 1 4 -4 h272 a4 4 0 0 1 4 4 v34 h-280 z"/>
+  <line class="sep-p2" x1="420" y1="728" x2="700" y2="728"/>
+  <text class="cname" x="560" y="714">Attendee</text>
+  <text class="stereo" x="560" y="741">«embedded», decision 17</text>
+  <text class="attr" x="432" y="761">- customerId : String «FK»</text>
+  <text class="attr" x="432" y="778">- usedUnlimited : Boolean</text>
+  <text class="attr" x="432" y="795">- balanceBefore : Number</text>
+  <text class="attr" x="432" y="812">- balanceAfter : Number</text>
+  <text class="notetxt" x="432" y="836">balanceAfter may be negative (step 8)</text>
+
+  <!-- ===================== ENUMERATIONS ===================== -->
+  <rect class="enumbox" x="760" y="690" width="400" height="160" rx="4"/>
+  <text class="legend" x="776" y="712" font-weight="700">Enumerations</text>
+  <text class="enumtxt" x="776" y="734">Role          = manager | instructor</text>
+  <text class="enumtxt" x="776" y="753">ContactMode   = phone | email</text>
+  <text class="enumtxt" x="776" y="772">ClassType     = General | Special</text>
+  <text class="enumtxt" x="776" y="791">Category      = General | Senior</text>
+  <text class="enumtxt" x="776" y="810">PaymentMode   = Cash | Card | Check</text>
+  <text class="enumtxt" x="776" y="829">Day           = Monday .. Sunday</text>
 
   <!-- ===================== ASSOCIATIONS ===================== -->
 
+  <!-- User 0..1 signs in as 1 Instructor -->
+  <path class="edge" d="M300 150 H350" marker-end="url(#arrow)"/>
+  <text class="mult" x="306" y="143">0..1</text>
+  <text class="role" x="300" y="176">signs in as</text>
+  <text class="mult" x="332" y="143">1</text>
+
   <!-- Instructor 1 to 0..* Class : teaches -->
-  <path class="edge" d="M165 268 V348" marker-end="url(#arrow)"/>
-  <text class="mult" x="172" y="288">1</text>
-  <text class="role" x="172" y="313">teaches</text>
-  <text class="mult" x="172" y="340">0..*</text>
+  <path class="edge" d="M380 278 V330 H170 V370" marker-end="url(#arrow)"/>
+  <text class="mult" x="387" y="296">1</text>
+  <text class="role" x="240" y="324">teaches</text>
+  <text class="mult" x="177" y="364">0..*</text>
 
   <!-- Customer 1 to 0..* Sale : buys -->
-  <path class="edge" d="M545 268 V310 H690 V348" marker-end="url(#arrow)"/>
-  <text class="mult" x="552" y="286">1</text>
-  <text class="role" x="588" y="303">buys</text>
-  <text class="mult" x="697" y="342">0..*</text>
+  <path class="edge" d="M740 278 V340 H440 V370" marker-end="url(#arrow)"/>
+  <text class="mult" x="747" y="296">1</text>
+  <text class="role" x="580" y="334">buys</text>
+  <text class="mult" x="447" y="364">0..*</text>
 
   <!-- Package 1 to 0..* Sale : sold as -->
-  <path class="edge" d="M935 268 V310 H800 V348" marker-end="url(#arrow)"/>
-  <text class="mult" x="942" y="286">1</text>
-  <text class="role" x="840" y="303">sold as</text>
-  <text class="mult" x="760" y="342">0..*</text>
+  <path class="edge" d="M1010 278 V310 H580 V370" marker-end="url(#arrow)"/>
+  <text class="mult" x="1017" y="296">1</text>
+  <text class="role" x="800" y="304">sold as</text>
+  <text class="mult" x="587" y="364">0..*</text>
 
-  <!-- Class 1 to 0..* Attendance : held as. Enters the top edge, so no
-       association line ever crosses an attribute row. -->
-  <path class="edge" d="M165 508 V560 H340 V596" marker-end="url(#arrow)"/>
-  <text class="mult" x="172" y="528">1</text>
-  <text class="role" x="196" y="553">held as</text>
-  <text class="mult" x="347" y="590">0..*</text>
+  <!-- Class 1 to 0..* Attendance : held as -->
+  <path class="edge" d="M170 547 V690" marker-end="url(#arrow)"/>
+  <text class="mult" x="177" y="567">1</text>
+  <text class="role" x="177" y="620">held as</text>
+  <text class="mult" x="177" y="684">0..*</text>
 
   <!-- Instructor to Attendance : records -->
-  <path class="edge" d="M290 200 H330 V545 H420 V596" marker-end="url(#arrow)"/>
-  <text class="role" x="336" y="380">records</text>
-  <text class="mult" x="427" y="590">0..*</text>
+  <path class="edge" d="M350 240 H330 V660 H90 V690" marker-end="url(#arrow)"/>
+  <text class="role" x="336" y="450">records</text>
+  <text class="mult" x="97" y="684">0..*</text>
 
-  <!-- Customer to Attendance : attends -->
-  <path class="edge" d="M420 232 H390 V530 H500 V596" marker-end="url(#arrow)"/>
-  <text class="role" x="396" y="420">attends</text>
-  <text class="mult" x="507" y="590">0..*</text>
+  <!-- Attendance composes 1..* Attendee -->
+  <path class="edge" d="M320 770 H420" marker-start="url(#diamond)"/>
+  <text class="mult" x="398" y="763">1..*</text>
+
+  <!-- Customer to Attendee : attends -->
+  <path class="edge" d="M905 278 V670 H560 V690" marker-end="url(#arrow)"/>
+  <text class="role" x="911" y="470">attends</text>
+  <text class="mult" x="567" y="684">0..*</text>
 
   <!-- ===================== LEGEND ===================== -->
-  <rect x="40" y="772" width="620" height="68" rx="4" fill="#f4f7f4" stroke="#c9dbcb" stroke-width="1.2"/>
-  <text class="legend" x="56" y="794" font-weight="700">Legend</text>
-  <rect x="120" y="783" width="26" height="14" fill="#fff" stroke="#3a5840" stroke-width="1.6"/>
-  <text class="legend" x="154" y="795">Built in Part 1</text>
-  <rect x="280" y="783" width="26" height="14" fill="#fff" stroke="#8a9a8c" stroke-width="1.6" stroke-dasharray="6 4"/>
-  <text class="legend" x="314" y="795">Planned for Part 2</text>
-  <text class="legend" x="56" y="822" font-size="10.5" fill="#6b746d">«FK» = a stored reference to another collection. MongoDB does not enforce it; the Express controllers check that the target exists.</text>
+  <rect x="40" y="890" width="1120" height="86" rx="4" fill="#f4f7f4" stroke="#c9dbcb" stroke-width="1.2"/>
+  <text class="legend" x="56" y="912" font-weight="700">Legend</text>
+  <rect x="130" y="901" width="26" height="14" fill="#fff" stroke="#3a5840" stroke-width="1.6"/>
+  <text class="legend" x="164" y="913">Built in Part 1</text>
+  <rect x="300" y="901" width="26" height="14" fill="#fff" stroke="#4a7050" stroke-width="1.6"/>
+  <path d="M300 901 h26 v14 h-26 z" fill="#f6ece6" opacity="0.6"/>
+  <text class="legend" x="334" y="913">Added in Part 2</text>
+  <text class="legend" x="56" y="940" font-size="10.5" fill="#6b746d">«FK» = a stored reference to another collection. MongoDB does not enforce it; the Express controllers check that the target exists before saving.</text>
+  <text class="legend" x="56" y="958" font-size="10.5" fill="#6b746d">A filled diamond is composition: an Attendee exists only inside its Attendance sheet. A leading / marks a derived value, which Mongoose calls a virtual.</text>
 </svg>
