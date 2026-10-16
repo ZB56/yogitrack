@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>YogiTrack - Project Report, Part 1</title>
+<title>YogiTrack - Project Report, Part 2</title>
 <style>
 :root{--ink:#1c211d;--mute:#5c6660;--line:#d8e0d9;--sage:#3a5840;--sage-l:#eef4ef;
       --warn:#fdf9f0;--warnb:#e2cfa4}
@@ -59,40 +59,77 @@ figcaption{font-family:Helvetica,Arial,sans-serif;font-size:8.5pt;color:var(--mu
 Cmd&#8209;P, choose <em>Save as PDF</em>, and make sure &ldquo;Print
 backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
 <div class="page">
-<h1 id="yogitrack-project-report-part-1">YogiTrack: Project Report, Part 1</h1>
-<p><strong>Course:</strong> ACS 5423, Software Development for World Wide Web <strong>Institution:</strong> University of Oklahoma <strong>Application:</strong> YogiTrack, a record-keeping system for the Yoga H&#x27;om studio <strong>Increment:</strong> Application 1.0 (Part 1) <strong>Technology stack:</strong> MongoDB · Express · React · Node.js (MERN) <strong>Live application:</strong> https://yogitrack-zb-9cc3ff17df1c.herokuapp.com <strong>Repository:</strong> https://github.com/ZB56/yogitrack</p>
+<h1 id="yogitrack-project-report-part-2">YogiTrack: Project Report, Part 2</h1>
+<p><strong>Course:</strong> ACS 5423, Software Development for World Wide Web <strong>Institution:</strong> University of Oklahoma <strong>Application:</strong> YogiTrack, a record-keeping system for the Yoga H&#x27;om studio <strong>Increment:</strong> Application 2.0 (Part 2), the final submission <strong>Technology stack:</strong> MongoDB · Express · React · Node.js (MERN) <strong>Live application:</strong> https://yogitrack-zb-9cc3ff17df1c.herokuapp.com <strong>Repository:</strong> https://github.com/ZB56/yogitrack</p>
+<p>This report supersedes the Part 1 report. It describes the whole application, with the Part 2 work marked throughout, so it can be read on its own.</p>
 <h2 id="1-executive-summary">1. Executive summary</h2>
 <p>Yoga H&#x27;om runs its studio on paper: a card per customer for classes bought and attended, and a signed sheet per class. That process does not scale and cannot answer questions like &quot;how much do we owe each instructor this month?&quot; without manual tallying.</p>
-<p>YogiTrack replaces those records with a web application. Part 1 delivers the foundation of the data model (the people and products the rest of the system refers to) together with the full technical architecture that Part 2 builds on.</p>
-<p><strong>What Part 1 delivers:</strong></p>
-<table><thead><tr><th>#</th><th>Use case</th><th>Status</th></tr></thead><tbody>
-<tr><td>UC1</td><td>Add an instructor</td><td><strong>Implemented end to end</strong></td></tr>
-<tr><td>UC4</td><td>Add a customer</td><td><strong>Implemented end to end</strong></td></tr>
-<tr><td>UC3</td><td>Add a package</td><td><strong>Implemented end to end</strong></td></tr>
+<p>YogiTrack replaces those records with a web application. <strong>All seven use cases from the course specification are implemented</strong>, and the application is deployed, with a GitHub repository and a CI pipeline that gates every release.</p>
+<table><thead><tr><th>#</th><th>Use case</th><th>Delivered</th><th>Actor</th></tr></thead><tbody>
+<tr><td>UC1</td><td>Add an instructor</td><td>Part 1</td><td>Manager</td></tr>
+<tr><td>UC4</td><td>Add a customer</td><td>Part 1</td><td>Manager</td></tr>
+<tr><td>UC3</td><td>Add a package</td><td>Part 1</td><td>Manager</td></tr>
+<tr><td>UC2</td><td>Add a class</td><td><strong>Part 2</strong></td><td>Manager</td></tr>
+<tr><td>UC5</td><td>Record a sale</td><td><strong>Part 2</strong></td><td>Manager</td></tr>
+<tr><td>UC6</td><td>Record class attendance</td><td><strong>Part 2</strong></td><td>Instructor</td></tr>
+<tr><td>UC7</td><td>Generate studio reports</td><td><strong>Part 2</strong></td><td>Manager</td></tr>
 </tbody></table>
-<p><strong>What Part 1 also establishes</strong>, and what Part 2 therefore does not have to re-solve: the request pipeline (routes → controllers → services → models), the atomic ID generator, the validation and error-handling strategy, the messaging abstraction, the responsive UI component set, and the deployment topology.</p>
+<p><strong>Part 2 also added authentication</strong>, which the Part 1 review asked for: accounts with bcrypt-hashed passwords, a signed token, and a role of manager or instructor checked on the server for every protected request. That is what finally makes the specification&#x27;s two actors real; before it, &quot;the Instructor&quot; was a label on a diagram rather than something the application could tell apart.</p>
+<h3 id="what-part-2-contributes-beyond-four-more-forms">What Part 2 contributes, beyond four more forms</h3>
+<ul>
+<li><strong>A rule the system enforces about time.</strong> UC2 cannot simply save what it is
+ given: only one class may run at a time, so a clash has to be detected and
+ somewhere else has to be proposed. That meant settling what a class length
+ even is, which the specification never states.
+</li>
+<li><strong>Money that has to add up.</strong> UC5 validates the amount against the price
+ list, the payment date against today, and the validity window against the
+ package&#x27;s own rules, then moves a balance. It is the first place where two
+ collections change together, so the order of those writes matters.
+</li>
+<li><strong>The first use case with a deliberate exception.</strong> UC6 must let an
+ instructor check in a customer who has run out of classes, recording a
+ negative balance to be settled later. The system&#x27;s job there is to make the
+ consequence visible, not to prevent it.
+</li>
+<li><strong>Questions answered inside the database.</strong> UC7&#x27;s four reports are MongoDB
+ aggregation pipelines, so joining, grouping and totalling happen next to the
+ data rather than after it has been copied out.
+</li>
+<li><strong>A security boundary.</strong> Authentication is enforced in Express middleware,
+ not in React. The interface hides what a role cannot use as a courtesy; the
+ server is what makes it impossible.
+</li></ul>
+<h3 id="what-the-whole-application-now-does">What the whole application now does</h3>
+<p>Nine collections&#x27; worth of studio record-keeping: who teaches, who attends, what the studio sells, what is on the timetable, what has been sold, who was in the room, and what all of that adds up to at the end of the month.</p>
 <h2 id="2-problem-statement-and-background">2. Problem statement and background</h2>
 <p>Yoga H&#x27;om was founded in 2003 in the suburbs of Pittsburgh, offering affordable yoga education to its community. It runs classes every day, taught by a number of instructors, with a published schedule. Some classes are general; others are specialised, such as Chair Yoga for seniors or Gentle Yoga for beginners.</p>
 <p>Customers buy class passes: a 4-class or 10-class package, a 3-month unlimited package, or a single drop-in pass. All packages have a validity period, and seniors get a discounted rate. The studio also runs workshops and special programme series at separate prices.</p>
 <p><strong>The current process is manual.</strong> A paper card per customer is ticked off as classes are bought and attended. A paper attendance sheet is signed at each class, recording the attendee, the package used, and the payment mode.</p>
 <p><strong>The problem.</strong> These manual processes have become a bottleneck to growth and operational efficiency. Records are duplicated across cards and sheets, they can only be read in one physical place, and any question spanning more than one customer requires a manual count. The studio has therefore begun automating, starting with record-keeping for instructors, customers, packages, the class schedule, and attendance.</p>
 <p><strong>The goal of this application</strong> is to make those records authoritative, queryable and remotely accessible, so that the studio&#x27;s day-to-day work no longer depends on paper.</p>
-<h2 id="3-scope-of-part-1">3. Scope of Part 1</h2>
-<h3 id="3-1-why-these-three-use-cases">3.1 Why these three use cases</h3>
+<h2 id="3-scope">3. Scope</h2>
+<h3 id="3-1-how-the-work-was-split-and-why-that-order">3.1 How the work was split, and why that order</h3>
 <p>The seven use cases form a dependency tree:</p>
 <pre><code>    Instructor ──&gt; Class ──────────┐
     Package ───┐                   ├──&gt; Attendance ──&gt; Reports
     Customer ──┴──&gt; Sale ──────────┘
 </code></pre>
 <p>A class cannot be scheduled without an instructor. A sale cannot be recorded without both a customer and a package. Attendance needs all of them, and the reports aggregate everything.</p>
-<p>Part 1 therefore builds the three roots of the tree (instructor, customer and package), and all three are delivered. This is not merely a convenient split. It means <strong>Part 2 is purely additive</strong>: no Part 1 entity has to be redesigned to make Part 2 work, because every Part 2 entity depends on Part 1 rather than the other way round.</p>
-<h3 id="3-2-what-is-deliberately-out-of-scope-for-part-1">3.2 What is deliberately out of scope for Part 1</h3>
+<p>Part 1 built the three roots of the tree, which made <strong>Part 2 purely additive</strong>: not one Part 1 schema had to be redesigned to make Part 2 work. The only change to a Part 1 model in the whole of Part 2 was adding a class type to the sale snapshot, and that was a Part 2 field on a Part 2 model.</p>
+<p>Within Part 2 the same ordering logic applied, with one exception. Authentication was built <strong>first</strong>, before any of the four use cases, even though it is not a use case at all. Two of the four needed it in order to be built correctly rather than retrofitted: UC2 sends a confirmation &quot;to the manager&quot;, and UC6 shows &quot;the classes assigned to the instructor&quot;. Both questions have no answer until the application knows who is signed in. Building the use cases first would have meant inventing a stand-in for the current user and then replacing it.</p>
+<h3 id="3-2-what-is-deliberately-out-of-scope">3.2 What is deliberately out of scope</h3>
+<p>Every exclusion below is a recorded decision with a reason, not an omission.</p>
 <table><thead><tr><th>Excluded</th><th>Reason</th></tr></thead><tbody>
-<tr><td>Modify and delete</td><td>The written specification describes only &quot;Add&quot;. Deleting needs a referential-integrity rule first, and there are no classes or sales to orphan until Part 2 exists. See decision 9.</td></tr>
-<tr><td>Authentication</td><td>No document in the specification states how users are identified. Deferred to the first instructor-facing use case, UC6, in Part 2. See decision 12.</td></tr>
-<tr><td>Real message delivery</td><td>The confirmation messages required by UC1 and UC4 are generated and displayed but not transmitted. See decision 3.</td></tr>
+<tr><td>Modify and delete</td><td>No written use case asks for them, and by Part 2 the referential-integrity problem is real rather than hypothetical: classes reference instructors, sales reference customers and packages, attendance references all of them, and a customer&#x27;s balance is derived from that history. The <code>active</code> flag exists on every schema so deactivation is a small change when a specification asks for it. Decision 9.</td></tr>
+<tr><td>The diagram-only use cases</td><td>Publish Class Schedule, View Class Schedule and View Class Attendance appear in the course&#x27;s Fig. 5 and in no written specification, so there is nothing to build against: scope, actors and acceptance would all have been invented. What the written use cases produced covers the intent: saving a class publishes it (UC2 step 5), the schedule is readable at <code>/classes</code>, and attendance at <code>/attendance</code>. Decision 10.</td></tr>
+<tr><td>The diagram&#x27;s five report names</td><td>The written UC7 names four reports and defines them. The diagram names five different ones and defines none. Section 4.7 maps one list onto the other. Decision 11.</td></tr>
+<tr><td>Real message delivery</td><td>Confirmations are generated, displayed and logged, but not transmitted. Sending them needs a paid provider account and its API keys, which is a studio purchasing decision rather than a development one. Every call site already goes through one <code>sendMessage</code> function, so the swap is one function body. Decision 3.</td></tr>
+<tr><td>Per-package class balances</td><td>The specification defines one <code>classBalance</code> per customer. That is what is built, with the consequence described in section 4.6 and decision 18.</td></tr>
 </tbody></table>
-<p>Each exclusion is a recorded decision with a rationale, not an omission.</p>
+<h3 id="3-3-responding-to-the-part-1-review">3.3 Responding to the Part 1 review</h3>
+<p>The Part 1 submission scored 25/25, with one instruction for the final submission: <strong>&quot;have authentication implemented.&quot;</strong></p>
+<p>Section 4.8 describes what was built in response: real accounts rather than a role selector, hashed passwords, a short-lived signed token, and role checks in Express middleware on every protected route. The review also noted that the application felt quick; section 7.1 describes the indexes added in Part 2 to keep it that way as the collections grow.</p>
 <h2 id="4-use-cases">4. Use cases</h2>
 <p>The course specification labels two different use cases &quot;Use case 5&quot; and labels reports &quot;Use case 6&quot;. They are renumbered 1–7 throughout this report; the original labels are given in parentheses. This is recorded as decision 6.</p>
 <h3 id="4-1-uc1-add-an-instructor-original-use-case-1">4.1 UC1: Add an instructor <em>(original: Use case 1)</em></h3>
@@ -128,7 +165,6 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
 <p>**Also note what is <em>not</em> constrained:** the schema deliberately sets no minimum on <code>classBalance</code>. UC6 step 8 requires that an instructor be able to check in a customer who has run out of classes, saving a negative balance to be resolved later. A <code>min: 0</code> would make that legitimate case impossible, so the customer list highlights a negative balance instead of preventing it.</p>
 <h3 id="4-3-uc3-add-a-package-original-use-case-3">4.3 UC3: Add a package <em>(original: Use case 3)</em></h3>
 <p><strong>Actor:</strong> Manager <strong>Data captured:</strong> package name; category (General or Senior); number of classes (1, 4, 10, or unlimited); class type (General or Special); start date; end date; price.</p>
-<p><strong>Flow:</strong> the manager enters the data and the system generates a package ID and confirms. There is no branch in this use case, which is why it is scheduled last of the three: it exercises no pattern the other two have not already established.</p>
 <p><strong>Flow:</strong> the manager enters the data and the system generates a package ID and confirms. Two steps, no branch, which is why it was scheduled last of the three: it exercises no pattern the other two had not already established.</p>
 <p><strong>The studio&#x27;s actual price list</strong> (Fig. 2 of the requirements) is what the schema had to accommodate, and it is loaded by <code>npm run seed:packages</code>:</p>
 <table><thead><tr><th>Package</th><th>Category</th><th>Classes</th><th>Validity</th><th>Price</th></tr></thead><tbody>
@@ -154,15 +190,171 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
 </code></pre>
 <p>Mongoose calls that function with the document as <code>this</code>, so the field is mandatory for a counted package and legitimately absent for an unlimited one. A plain <code>required: true</code> would have made the 3-month unlimited pass, one of the studio&#x27;s seven real products, impossible to save.</p>
 <p>Two further rules are enforced at the schema rather than trusted from the form: the class count must be one the studio actually sells (1, 4 or 10), and the end date must fall after the start date, because a package that expires before it begins can never be sold. The controller additionally forces <code>numClasses</code> to <code>null</code> whenever <code>unlimited</code> is true, so a contradictory request body cannot be stored in a state that later code could read two ways.</p>
-<h3 id="4-4-use-cases-deferred-to-part-2">4.4 Use cases deferred to Part 2</h3>
-<table><thead><tr><th>#</th><th>Use case</th><th>Principal challenge</th></tr></thead><tbody>
-<tr><td>UC2</td><td>Add a class</td><td>Detecting a schedule conflict and proposing alternatives. Needs a class duration, which the specification never states (decision 5).</td></tr>
-<tr><td>UC5</td><td>Record a sale</td><td>Validating the amount against the package rate and updating the customer&#x27;s class balance.</td></tr>
-<tr><td>UC6</td><td>Record class attendance</td><td>Instructor-facing; warns when the date does not match the schedule, and permits a negative balance to be saved deliberately and resolved later.</td></tr>
-<tr><td>UC7</td><td>Generate studio reports</td><td>Four reports. MongoDB aggregation pipelines are the natural fit and demonstrate a genuine strength of the database.</td></tr>
+<h3 id="4-4-uc2-add-a-class-original-use-case-2-part-2">4.4 UC2: Add a class <em>(original: Use case 2)</em> — Part 2</h3>
+<p><strong>Actor:</strong> Manager <strong>Data captured:</strong> instructor, day, time, class length, class type (General or Special), pay rate.</p>
+<p>A class in YogiTrack is a <strong>weekly slot in the timetable</strong>, not a single dated occurrence. That follows the requirements: Fig. 1 is a weekly schedule and UC2 collects a day and a time rather than a date. A particular Tuesday only becomes a record when attendance is taken for it, which is also how the studio&#x27;s paper sheets work.</p>
+<p><strong>Flow as implemented:</strong></p>
+<table><thead><tr><th>Step</th><th>Specification</th><th>Implementation</th></tr></thead><tbody>
+<tr><td>1</td><td>Manager chooses to create a class and enters the data</td><td><code>AddClass.jsx</code></td></tr>
+<tr><td>2</td><td>System checks for a schedule conflict, as only one class can be held at a time</td><td><code>GET /api/classes/check-conflict</code> runs as the form is filled in; <code>POST /api/classes</code> checks again before saving</td></tr>
+<tr><td>3</td><td>If there is a conflict, the system suggests other options</td><td>Up to four free slots, offered as buttons</td></tr>
+<tr><td>4</td><td>Manager selects one of the options</td><td>Clicking a suggestion moves the form to that slot</td></tr>
+<tr><td>5</td><td>Manager confirms and publishes the schedule</td><td>Saving puts it in the schedule; there is no separate publish state</td></tr>
+<tr><td>6</td><td>System confirms to the manager and to the instructor</td><td><code>sendMessage</code> to the instructor on their preferred channel, <code>sendStudioMessage</code> for the manager&#x27;s copy</td></tr>
 </tbody></table>
+<p><strong>The problem the specification leaves open: how long is a class?</strong> &quot;Only one class can be held at any time&quot; cannot be tested without a length, and the course documents never give one. The answer adopted is a <code>durationMinutes</code> field defaulting to 60 (decision 5). A field rather than a constant, because the studio runs workshops that are plainly not an hour, and because the class diagram carried <code>durationMinutes</code> from Part 1.</p>
+<p>With a length, a conflict is the standard interval-overlap test, expressed as a method on the model so that the rule lives with the data it describes:</p>
+<pre><code>classSchema.methods.clashesWith = function (slot) {
+  if (this.day !== slot.day) return false;
+
+  const thisStart  = timeToMinutes(this.time);
+  const thisEnd    = thisStart + this.durationMinutes;
+  const otherStart = timeToMinutes(slot.time);
+  const otherEnd   = otherStart + slot.durationMinutes;
+
+  return thisStart &lt; otherEnd &amp;&amp; otherStart &lt; thisEnd;
+};
+</code></pre>
+<p>Times are stored as 24-hour <code>&quot;HH:MM&quot;</code> text and converted to minutes for the comparison. Text, because a weekly slot has no date attached and a <code>Date</code> would drag a timezone into a value that has none; minutes, because it turns the overlap rule into two ordinary inequalities. The comparison is strict on both sides, so touching slots do not clash and a 60-minute class at 09:00 leaves 10:00 free.</p>
+<p><strong>Step 3 is where this use case earns its keep.</strong> Refusing a clash is easy; proposing somewhere to put the class instead is what makes the rule usable. The alternatives are offered nearest-first in the order a manager actually thinks about them: later the same day in half-hour steps, then earlier the same day, then the same time on following days. A manager with a clash usually wants to nudge the class an hour, not move it to Sunday.</p>
+<p>Suggestions stay inside a 06:00–21:00 studio day, which is an assumption: the requirements say the studio runs classes every day but never give opening hours. It limits only what YogiTrack <em>proposes</em>; a manager may still enter any valid time, which is why the schema accepts any 24-hour time.</p>
+<p><strong>A clash cannot be overridden, and that is the difference from UC1.</strong> The duplicate-name prompt in UC1 can be confirmed through, because two people genuinely may share a name. Two classes cannot share one room at one time, so <code>POST /api/classes</code> answers <code>409</code> with the alternatives and no way to force it. The HTTP status is the same; what the body offers is not.</p>
+<p><strong>Beyond the specification:</strong> a schedule list at <code>/classes</code>, for the same reason Part 1 added list views. The server narrows it to the signed-in instructor&#x27;s own classes, which is exactly what UC6 step 2 needs.</p>
+<h3 id="4-5-uc5-record-a-sale-original-use-case-5-part-2">4.5 UC5: Record a sale <em>(original: Use case 5)</em> — Part 2</h3>
+<p><strong>Actor:</strong> Manager <strong>Data captured:</strong> customer, package, amount paid, mode of payment, date and time of payment, validity start and end.</p>
+<p><strong>Flow as implemented:</strong></p>
+<table><thead><tr><th>Step</th><th>Specification</th><th>Implementation</th></tr></thead><tbody>
+<tr><td>1</td><td>Manager chooses to record a sale</td><td><code>RecordSale.jsx</code></td></tr>
+<tr><td>2</td><td>System prompts for the data and auto-populates the package type</td><td><code>GET /api/sales/quote</code> returns the price, the validity window and the customer&#x27;s current balance; the form fills itself in</td></tr>
+<tr><td>3</td><td>Manager enters the data</td><td>Auto-filled fields stay editable, because the use case lists them as entered data</td></tr>
+<tr><td>4</td><td>System validates the data</td><td>Three rules, below</td></tr>
+<tr><td>5</td><td>System updates the class balance</td><td><code>$inc</code> on the customer document</td></tr>
+<tr><td>6</td><td>System displays the new balance and confirms</td><td>Success panel naming the package, the amount, the classes added and the new balance</td></tr>
+</tbody></table>
+<p><strong>The three validations in step 4</strong>, each quoted from the specification:</p>
+<ul>
+<li><em>&quot;Amount paid is as per the package rate.&quot;</em> The amount is compared against
+ the package&#x27;s price. Prices are stored as floating-point dollars, so the
+ comparison uses a half-cent tolerance rather than <code>===</code>; the note in
+ <code>Package.js</code> explains why a production billing system would store cents as
+ integers instead.
+</li>
+<li><em>&quot;Date and time are current.&quot;</em> Read as: the sale is being recorded as it
+ happens, so the timestamp must be today. A future time is a typo, and an
+ older one would be a back-dated sale, which the use case does not describe.
+ A minute of slack is allowed because the browser&#x27;s clock and the server&#x27;s
+ rarely agree to the second.
+</li>
+<li><em>&quot;Start and end dates are as per the package rules and are current.&quot;</em> The
+ package&#x27;s own validity window gives the LENGTH (&quot;4 Class Pass, validity one
+ month&quot; is stored as two dates a month apart), so buying it today gives a
+ window of the same length starting today. The server re-derives that window
+ and rejects anything that does not match, rather than quietly correcting it.
+</li></ul>
+<p>Errors from all three are collected and returned together, so a manager sees everything that is wrong in one pass instead of fixing three things in a row.</p>
+<p><strong>A sale snapshots the package it sold.</strong> <code>packageName</code>, <code>classesPurchased</code>, <code>unlimited</code> and <code>classType</code> are copied onto the sale at the moment it is recorded, as well as the <code>packageId</code> reference. The duplication is deliberate (decision 16): a package is editable and a sale is a historical fact. If a sale held only a reference, raising the price of the 10 Class Pass would silently rewrite every sale ever made of it, and the package sales report would show revenue the studio never took.</p>
+<p><strong>Step 5, and the order of two writes.</strong> The sale is written first, then the balance is incremented:</p>
+<pre><code>const updatedCustomer = await Customer.findOneAndUpdate(
+  { customerId: customer.customerId },
+  { $inc: { classBalance: classesAdded } },
+  { new: true }
+);
+</code></pre>
+<p>Two details. <code>$inc</code> rather than reading the balance and writing it back, because the increment is a single atomic operation inside MongoDB and two sales recorded at the same moment cannot lose one of them. And the sale before the balance, because if the second write failed the studio would have a recorded payment and an un-credited balance, which a manager can see and fix; the other order would credit classes with no record of payment, which nobody would ever notice.</p>
+<p><strong>An unlimited package adds nothing to the counter.</strong> Entitlement for it is decided by the validity dates, not by counting down (decision 4), so <code>classesAdded</code> is 0 and the success panel says so in words rather than reporting a balance that did not move.</p>
+<h3 id="4-6-uc6-record-class-attendance-original-the-second-use-case-5-part-2">4.6 UC6: Record class attendance <em>(original: the second &quot;Use case 5&quot;)</em> — Part 2</h3>
+<p><strong>Actor:</strong> Instructor <strong>Purpose:</strong> mark who attended a class, which updates their class balances.</p>
+<p>This is the use case the rest of the data model exists to support, and the only one that writes to three places at once: the sheet, every attendee&#x27;s balance, and a message to each of them.</p>
+<p><strong>Flow as implemented:</strong></p>
+<table><thead><tr><th>Step</th><th>Specification</th><th>Implementation</th></tr></thead><tbody>
+<tr><td>1</td><td>Instructor chooses to enter attendance</td><td><code>RecordAttendance.jsx</code></td></tr>
+<tr><td>2</td><td>System lists the classes led by that instructor</td><td><code>GET /api/classes</code>, narrowed from the signed-in user&#x27;s token</td></tr>
+<tr><td>3</td><td>Instructor chooses the class</td><td>Dropdown</td></tr>
+<tr><td>4</td><td>Sheet opens with the current date and time, editable</td><td><code>datetime-local</code>, defaulted to now</td></tr>
+<tr><td>5</td><td>Warning if the date and time do not match the schedule</td><td>Computed on the server and shown as a warning panel</td></tr>
+<tr><td>6</td><td>Instructor picks customers from the list</td><td>Searchable tick-list, with each person&#x27;s balance alongside</td></tr>
+<tr><td>7</td><td>Instructor saves</td><td><code>POST /api/attendance</code></td></tr>
+<tr><td>8</td><td>System flags anyone short of balance and offers to continue</td><td><code>409</code> with <code>requiresConfirmation</code> and the names; resending with <code>allowNegativeBalance</code> goes ahead</td></tr>
+<tr><td>9</td><td>If valid, the sheet is saved</td><td><code>A00001</code></td></tr>
+<tr><td>10</td><td>Balances are updated and each attendee is messaged</td><td><code>$inc</code> per attendee, then the specification&#x27;s exact check-in wording</td></tr>
+</tbody></table>
+<p><strong>Step 5 is a warning, not an error,</strong> because a class genuinely can be moved or made up on another day, and the sheet should record when it was actually held. The system&#x27;s job is to make the discrepancy visible:</p>
+<blockquote>
+<p>L00001 is scheduled for Tuesday at 09:00, but this sheet says Thursday at 09:00.</p>
+</blockquote>
+<p><strong>Step 8 is the most interesting rule in the specification.</strong> It requires that an instructor be able to check in a customer with no classes left, &quot;to be resolved later&quot;. So an insufficient balance is a question, not a refusal, and it uses the same convention as UC1&#x27;s duplicate name: <code>409</code> with <code>requiresConfirmation</code>, the names and what each balance would become, and a second request that goes ahead. Nothing in the schema prevents a negative balance either; <code>classBalance</code> has deliberately no minimum, and the customer list colours it instead.</p>
+<p><strong>What a check-in costs is decided in one place</strong>, so the preview the instructor sees while ticking names and the figure that is written on save cannot disagree:</p>
+<ul>
+<li>&lt;strong&gt;1.&lt;/strong&gt; An active unlimited package covers the class and deducts nothing.
+</li>
+<li>&lt;strong&gt;2.&lt;/strong&gt; Otherwise one class comes off the balance.
+</li>
+<li>&lt;strong&gt;3.&lt;/strong&gt; A balance that cannot cover it is flagged for step 8.
+</li></ul>
+<p>&quot;Active&quot; is judged at the time of the <strong>class</strong>, not the time of typing, so a sheet filed on Monday for Friday&#x27;s class is judged by whether the package covered the customer on Friday.</p>
+<p><strong>The sheet records what the check-in did, not just who was there.</strong> Each attendee is stored as a sub-document with <code>usedUnlimited</code>, <code>balanceBefore</code> and <code>balanceAfter</code>. This is the one place the built model deliberately differs from the Part 1 data-model sketch, which had a plain array of customer IDs (decision 17). Step 8&#x27;s negative balance is only resolvable later if the sheet says what happened, and without <code>usedUnlimited</code> a reader cannot tell a legitimate free check-in from a balance that failed to decrement.</p>
+<p><strong>One rule is reported rather than enforced, and the report says so.</strong> The requirements state that a Special package admits its holder only to Special classes. The data model the use cases specify keeps one balance per customer, not a balance per package type, so once a counted check-in is made the system cannot tell which purchase it drew on. Blocking on class type would mean enforcing a rule the data cannot support, and would wrongly refuse a customer holding both a General and a Special package. So the sheet flags &quot;No active Special package on file&quot; and leaves the judgement with the instructor (decision 18). The honest fix is per-package balances, which is a change to the specified data model; it is listed in section 12.</p>
+<p><strong>Step 10&#x27;s message</strong> reproduces the specification&#x27;s wording and its <code>dd/mm/yy</code> format exactly, including a negative balance where there is one:</p>
+<blockquote>
+<p>Hello Priya! You are checked-in for a class on 15/10/26 at 9:00 am. Your class-balance is 15.</p>
+</blockquote>
+<h3 id="4-7-uc7-generate-studio-reports-original-use-case-6-part-2">4.7 UC7: Generate studio reports <em>(original: Use case 6)</em> — Part 2</h3>
+<p><strong>Actor:</strong> Manager <strong>Four reports</strong>, as the written use case names them:</p>
+<table><thead><tr><th>Report</th><th>What it answers</th><th>Pipeline</th></tr></thead><tbody>
+<tr><td>Package sales</td><td>What sold, how many, and what it brought in</td><td><code>$group</code> by the sale&#x27;s snapshot of the package, then totals</td></tr>
+<tr><td>Instructors</td><td>Each instructor&#x27;s classes, classes held and check-ins</td><td><code>$lookup</code> to classes and attendance, <code>$map</code> to keep four fields per class, <code>$sum</code> of each sheet&#x27;s attendee count</td></tr>
+<tr><td>Customers</td><td>Each customer&#x27;s packages, labelled active, future or expired</td><td><code>$lookup</code> to sales, <code>$switch</code> against <code>$$NOW</code></td></tr>
+<tr><td>Teacher payment</td><td>What each instructor is owed for a month</td><td><code>$match</code> on the month, <code>$lookup</code> for the pay rate, <code>$group</code> per instructor</td></tr>
+</tbody></table>
+<p><strong>Why aggregation pipelines.</strong> Each report could have been a <code>find()</code> followed by JavaScript. A pipeline is a list of stages that runs <strong>inside the database</strong>, so the joining, grouping and arithmetic happen next to the data instead of after every document has been copied across the network. It is also the part of MongoDB that most repays understanding, and the course asks for a design that demonstrates the stack rather than merely uses it.</p>
+<p>Two details worth drawing out:</p>
+<ul>
+<li><strong>The customer report computes its labels at read time.</strong> <code>$switch</code> compares
+ each sale&#x27;s validity window against <code>$$NOW</code>, the server&#x27;s clock, so a
+ package that lapsed overnight reads as expired without anything being
+ rewritten. Storing a status on the sale would mean every document in the
+ collection going stale while nobody is looking.
+</li>
+<li><strong>The payment report filters before it joins.</strong> <code>$match</code> on the indexed
+ <code>heldAt</code> comes first, so the <code>$lookup</code> runs against one month of sheets
+ rather than the whole collection. Stage order is a performance decision, not
+ a stylistic one.
+</li></ul>
+<p><strong>One assumption, stated.</strong> UC7 says the payment report is &quot;based on the pay-rate and class check-ins&quot;. The pay rate is treated as what an instructor earns each time the class is <strong>held</strong>, and a class counts as held when an attendance sheet exists for it. Paying per head would make a teacher&#x27;s income depend on turnout, which is not how a studio pays. The check-in count is reported next to the payment, so both readings are visible to anyone who disagrees.</p>
+<p><strong>Mapping to the course diagram&#x27;s report names</strong>, which differ from the written list (decision 11):</p>
+<table><thead><tr><th>Fig. 5 names</th><th>Covered by</th></tr></thead><tbody>
+<tr><td>Studio Performance</td><td>Package sales</td></tr>
+<tr><td>Instructor Performance</td><td>Instructors report</td></tr>
+<tr><td>Customer Attendance</td><td>Customers report, plus the attendance list</td></tr>
+<tr><td>Class Attendance</td><td>The attendance list at <code>/attendance</code></td></tr>
+<tr><td>Instructor Self-Performance</td><td>Not built: it is the instructors report filtered to one person, and no written use case asks for it</td></tr>
+</tbody></table>
+<h3 id="4-8-authentication-and-roles-part-2-not-a-use-case">4.8 Authentication and roles — Part 2, not a use case</h3>
+<p>No course document specifies authentication, but the specification names two actors with different capabilities, and the Part 1 review asked for it directly. Decision 12 settles it as <strong>real accounts, not a role selector</strong>: a selector that anyone can switch demonstrates two views but authenticates nobody.</p>
+<p><strong>What was built:</strong></p>
+<table><thead><tr><th>Piece</th><th>Choice</th><th>Reason</th></tr></thead><tbody>
+<tr><td>Passwords</td><td>bcrypt, work factor 12, <code>select: false</code> on the hash</td><td>Each increment of the factor doubles an attacker&#x27;s work on stolen hashes; <code>select: false</code> keeps the hash out of every query result except the one the sign-in code runs</td></tr>
+<tr><td>Sessions</td><td>A signed JSON Web Token, eight-hour lifetime</td><td>A server-side session needs a store, and the Heroku dyno&#x27;s filesystem is discarded daily. Eight hours is about one studio shift; the trade-off is that a token cannot be revoked early, which is why it is short</td></tr>
+<tr><td>Enforcement</td><td><code>requireAuth</code> and <code>requireRole</code> in Express middleware</td><td>Roles are checked on the server for every protected route. The React guard and the role-filtered navigation decide what is <em>offered</em>, not what is <em>allowed</em></td></tr>
+<tr><td>Accounts</td><td>A manager creates them; no sign-up page</td><td>A studio decides who works there. The first manager comes from <code>npm run create:manager</code>, which reads the password from the environment and stores only the hash</td></tr>
+<tr><td>Instructor link</td><td>A <code>instructorId</code> on the account</td><td>UC6 shows &quot;the classes assigned to the instructor&quot;, which needs the login to know which instructor it belongs to</td></tr>
+</tbody></table>
+<p><strong>Two details that are easy to get wrong, and were deliberately not:</strong></p>
+<ul>
+<li><strong>Every sign-in failure answers with one message.</strong> Unknown username, wrong
+ password and deactivated account all return &quot;Username or password is
+ incorrect.&quot; Being more specific would turn the endpoint into a way to
+ discover which usernames exist.
+</li>
+<li><strong>401 and 403 mean different things.</strong> 401 is &quot;I do not know who you are&quot;,
+ and the client responds by sending the user to sign in. 403 is &quot;I know who
+ you are, and no&quot;, and the client shows the message. The React side clears a
+ token on any 401 <em>except</em> the login call itself, because a wrong password
+ also answers 401 and must not sign out the manager who mistyped it.
+</li></ul>
+<p><strong>What authentication is not.</strong> The token is kept in <code>localStorage</code>, so a cross-site scripting bug could read it. An httpOnly cookie would be safer against that, but brings CSRF protection with it. The reasoning is written out in <code>client/src/api/session.js</code>, and the risk is listed in section 12 rather than left unsaid.</p>
 <h2 id="5-uml-models">5. UML models</h2>
-<p>Four models are provided in full, with editable PlantUML source, in <a href="10-uml-models.md"><code>10-uml-models.md</code></a>.</p>
+<p>Five models are provided in full, with editable PlantUML source, in <a href="10-uml-models.md"><code>10-uml-models.md</code></a>. All five were updated for Part 2.</p>
 <h3 id="5-1-use-case-diagram">5.1 Use-case diagram</h3>
 <figure class="diagram"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 950" font-family="Helvetica, Arial, sans-serif">
   <title>YogiTrack use-case diagram, scoped by delivery increment</title>
@@ -178,11 +370,11 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
     .bound     { fill:#fbfcfb; stroke:#3a5840; stroke-width:1.8; }
     .boundname { font-size:14px; font-weight:700; fill:#3a5840; text-anchor:middle; }
     .uc1       { fill:#e5ede6; stroke:#3a5840; stroke-width:1.8; }
-    .uc2       { fill:#ffffff; stroke:#8a9a8c; stroke-width:1.6; stroke-dasharray:6 4; }
-    .ucsub     { fill:#ffffff; stroke:#8a9a8c; stroke-width:1.4; stroke-dasharray:6 4; }
+    .uc2       { fill:#f6ece6; stroke:#4a7050; stroke-width:1.8; }
+    .ucsub     { fill:#f6ece6; stroke:#4a7050; stroke-width:1.4; }
     .uctxt     { font-size:12.5px; font-weight:600; fill:#1c211d; text-anchor:middle; }
     .ucid      { font-size:10px; font-weight:700; fill:#4a7050; text-anchor:middle; }
-    .ucid2     { font-size:10px; font-weight:700; fill:#8a9a8c; text-anchor:middle; }
+    .ucid2     { font-size:10px; font-weight:700; fill:#b4714d; text-anchor:middle; }
     .ucsubtxt  { font-size:11px; fill:#3d453f; text-anchor:middle; }
     .actor     { stroke:#1c211d; stroke-width:1.8; fill:none; }
     .actorname { font-size:13px; font-weight:700; fill:#1c211d; text-anchor:middle; }
@@ -293,203 +485,279 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
   <text class="note" x="44" y="858" font-weight="700">Scope note</text>
   <text class="note" x="44" y="877">This diagram shows the seven written use cases from the course specification, renumbered 1&#8211;7 (the source labels two of them</text>
   <text class="note" x="44" y="893">&#8220;Use case 5&#8221;). The course Fig. 5 diagram is broader than the written specification; the differences are catalogued in</text>
-  <text class="note" x="44" y="909">docs/08-use-case-diagram.md and tracked as open decisions 10&#8211;12 in docs/07-design-decisions.md.</text>
+  <text class="note" x="44" y="909">docs/08-use-case-diagram.md, and settled as decisions 10&#8211;12 in docs/07-design-decisions.md. Both actors sign in first (decision 12): role is checked on every request.</text>
 </svg>
 <figcaption>Use-case diagram</figcaption></figure>
-<p>Two actors: the <strong>Manager</strong>, responsible for records and money, and the <strong>Instructor</strong>, who records attendance. The four reports are modelled as specialisations of UC7.</p>
-<p>The course&#x27;s own Fig. 5 is broader than the written specification: it shows Add/Modify/Delete rather than Add, adds &quot;Publish Class Schedule&quot;, &quot;View Class Schedule&quot; and &quot;View Class Attendance&quot;, and names a different set of reports. Rather than silently pick one, the differences are catalogued in <a href="08-use-case-diagram.md"><code>08-use-case-diagram.md</code></a> and carried as open decisions 10–12. The written specification governs what has been built.</p>
+<p>Two actors: the <strong>Manager</strong>, responsible for records and money, and the <strong>Instructor</strong>, who records attendance. The four reports are modelled as specialisations of UC7. Green ellipses were delivered in Part 1 and warm ones in Part 2; all seven are now implemented.</p>
+<p>Signing in is not drawn as a use case, because no course document specifies it as one. It is a precondition of all seven, and the role on the account decides which of them an actor can reach.</p>
+<p>The course&#x27;s own Fig. 5 is broader than the written specification: it shows Add/Modify/Delete rather than Add, adds &quot;Publish Class Schedule&quot;, &quot;View Class Schedule&quot; and &quot;View Class Attendance&quot;, and names a different set of reports. Rather than silently pick one, the differences are catalogued in <a href="08-use-case-diagram.md"><code>08-use-case-diagram.md</code></a> and settled as decisions 9, 10 and 11, with section 3.2 giving the reasoning and section 4.7 mapping the report names.</p>
 <h3 id="5-2-class-diagram">5.2 Class diagram</h3>
-<figure class="diagram"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 880" font-family="Helvetica, Arial, sans-serif">
+<figure class="diagram"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1000" font-family="Helvetica, Arial, sans-serif">
   <title>YogiTrack domain class diagram</title>
-  <desc>UML class diagram of the seven YogiTrack collections and their associations.</desc>
+  <desc>UML class diagram of the eight YogiTrack collections, the embedded attendee record, and their associations, after Part 2.</desc>
 
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#3a5840"/>
     </marker>
+    <marker id="diamond" viewBox="0 0 14 10" refX="1" refY="5" markerWidth="12" markerHeight="10" orient="auto">
+      <path d="M 0 5 L 7 0 L 14 5 L 7 10 z" fill="#3a5840"/>
+    </marker>
   </defs>
 
   <style>
     .box       { fill:#ffffff; stroke:#3a5840; stroke-width:1.6; }
-    .box-p2    { fill:#ffffff; stroke:#8a9a8c; stroke-width:1.6; stroke-dasharray:6 4; }
+    .box-p2    { fill:#ffffff; stroke:#4a7050; stroke-width:1.6; }
     .hdr       { fill:#e5ede6; stroke:#3a5840; stroke-width:1.6; }
-    .hdr-p2    { fill:#f2f5f2; stroke:#8a9a8c; stroke-width:1.6; stroke-dasharray:6 4; }
+    .hdr-p2    { fill:#f6ece6; stroke:#4a7050; stroke-width:1.6; }
     .cname     { font-size:15px; font-weight:700; fill:#1c211d; text-anchor:middle; }
     .stereo    { font-size:10.5px; fill:#6b746d; text-anchor:middle; font-style:italic; }
     .attr      { font-size:11.5px; fill:#3d453f; font-family:"SF Mono", Menlo, Consolas, monospace; }
     .op        { font-size:11.5px; fill:#4a7050; font-family:"SF Mono", Menlo, Consolas, monospace; font-style:italic; }
     .sep       { stroke:#3a5840; stroke-width:1; }
-    .sep-p2    { stroke:#8a9a8c; stroke-width:1; stroke-dasharray:6 4; }
+    .sep-p2    { stroke:#4a7050; stroke-width:1; }
     .edge      { stroke:#3a5840; stroke-width:1.5; fill:none; }
     .mult      { font-size:11px; fill:#3a5840; font-weight:600; }
     .role      { font-size:11px; fill:#6b746d; font-style:italic; }
     .legend    { font-size:12px; fill:#3d453f; }
     .note      { fill:#fdf4e3; stroke:#d8bc7f; stroke-width:1.2; }
     .notetxt   { font-size:11px; fill:#8a5c14; }
+    .enumbox   { fill:#f4f7f4; stroke:#c9dbcb; stroke-width:1.2; }
+    .enumtxt   { font-size:11px; fill:#3d453f; font-family:"SF Mono", Menlo, Consolas, monospace; }
   </style>
 
+  <!-- ===================== USER (Part 2) ===================== -->
+  <rect class="box-p2" x="40" y="60" width="260" height="194" rx="4"/>
+  <path class="hdr-p2" d="M40 64 a4 4 0 0 1 4 -4 h252 a4 4 0 0 1 4 4 v34 h-260 z"/>
+  <line class="sep-p2" x1="40" y1="98" x2="300" y2="98"/>
+  <text class="cname" x="170" y="84">User</text>
+  <text class="stereo" x="170" y="111">(Part 2, decision 12)</text>
+  <text class="attr" x="52" y="131">- username : String {unique}</text>
+  <text class="attr" x="52" y="148">- passwordHash : String</text>
+  <text class="attr" x="52" y="165">- role : Role</text>
+  <text class="attr" x="52" y="182">- instructorId : String «FK» | null</text>
+  <text class="attr" x="52" y="199">- active : Boolean = true</text>
+  <text class="attr" x="52" y="216">- lastLoginAt : Date | null</text>
+  <line class="sep-p2" x1="40" y1="226" x2="300" y2="226"/>
+  <text class="op" x="52" y="244">verifyPassword(plain) : Boolean</text>
+
   <!-- ===================== INSTRUCTOR (Part 1) ===================== -->
-  <rect class="box" x="40" y="50" width="250" height="218" rx="4"/>
-  <path class="hdr" d="M40 54 a4 4 0 0 1 4 -4 h242 a4 4 0 0 1 4 4 v34 h-250 z"/>
-  <line class="sep" x1="40" y1="88" x2="290" y2="88"/>
-  <text class="cname" x="165" y="74">Instructor</text>
-  <text class="attr" x="52" y="108">- instructorId : String {unique}</text>
-  <text class="attr" x="52" y="125">- firstName : String</text>
-  <text class="attr" x="52" y="142">- lastName : String</text>
-  <text class="attr" x="52" y="159">- address : String</text>
-  <text class="attr" x="52" y="176">- phone : String</text>
-  <text class="attr" x="52" y="193">- email : String</text>
-  <text class="attr" x="52" y="210">- preferredContact : ContactMode</text>
-  <text class="attr" x="52" y="227">- active : Boolean = true</text>
-  <line class="sep" x1="40" y1="238" x2="290" y2="238"/>
-  <text class="op" x="52" y="256">/ fullName : String</text>
+  <rect class="box" x="350" y="60" width="260" height="218" rx="4"/>
+  <path class="hdr" d="M350 64 a4 4 0 0 1 4 -4 h252 a4 4 0 0 1 4 4 v34 h-260 z"/>
+  <line class="sep" x1="350" y1="98" x2="610" y2="98"/>
+  <text class="cname" x="480" y="84">Instructor</text>
+  <text class="attr" x="362" y="118">- instructorId : String {unique}</text>
+  <text class="attr" x="362" y="135">- firstName : String</text>
+  <text class="attr" x="362" y="152">- lastName : String</text>
+  <text class="attr" x="362" y="169">- address : String</text>
+  <text class="attr" x="362" y="186">- phone : String</text>
+  <text class="attr" x="362" y="203">- email : String</text>
+  <text class="attr" x="362" y="220">- preferredContact : ContactMode</text>
+  <text class="attr" x="362" y="237">- active : Boolean = true</text>
+  <line class="sep" x1="350" y1="248" x2="610" y2="248"/>
+  <text class="op" x="362" y="266">/ fullName : String</text>
 
   <!-- ===================== CUSTOMER (Part 1) ===================== -->
-  <rect class="box" x="420" y="50" width="250" height="218" rx="4"/>
-  <path class="hdr" d="M420 54 a4 4 0 0 1 4 -4 h242 a4 4 0 0 1 4 4 v34 h-250 z"/>
-  <line class="sep" x1="420" y1="88" x2="670" y2="88"/>
-  <text class="cname" x="545" y="74">Customer</text>
-  <text class="attr" x="432" y="108">- customerId : String {unique}</text>
-  <text class="attr" x="432" y="125">- firstName : String</text>
-  <text class="attr" x="432" y="142">- lastName : String</text>
-  <text class="attr" x="432" y="159">- address : String</text>
-  <text class="attr" x="432" y="176">- phone : String</text>
-  <text class="attr" x="432" y="193">- email : String</text>
-  <text class="attr" x="432" y="210">- preferredContact : ContactMode</text>
-  <text class="attr" x="432" y="227">- classBalance : Number = 0</text>
-  <line class="sep" x1="420" y1="238" x2="670" y2="238"/>
-  <text class="op" x="432" y="256">/ fullName : String</text>
+  <rect class="box" x="660" y="60" width="260" height="218" rx="4"/>
+  <path class="hdr" d="M660 64 a4 4 0 0 1 4 -4 h252 a4 4 0 0 1 4 4 v34 h-260 z"/>
+  <line class="sep" x1="660" y1="98" x2="920" y2="98"/>
+  <text class="cname" x="790" y="84">Customer</text>
+  <text class="attr" x="672" y="118">- customerId : String {unique}</text>
+  <text class="attr" x="672" y="135">- firstName : String</text>
+  <text class="attr" x="672" y="152">- lastName : String</text>
+  <text class="attr" x="672" y="169">- address : String</text>
+  <text class="attr" x="672" y="186">- phone : String</text>
+  <text class="attr" x="672" y="203">- email : String</text>
+  <text class="attr" x="672" y="220">- preferredContact : ContactMode</text>
+  <text class="attr" x="672" y="237">- classBalance : Number = 0</text>
+  <line class="sep" x1="660" y1="248" x2="920" y2="248"/>
+  <text class="op" x="672" y="266">/ fullName : String</text>
 
   <!-- ===================== PACKAGE (Part 1) ===================== -->
-  <rect class="box" x="800" y="50" width="270" height="218" rx="4"/>
-  <path class="hdr" d="M800 54 a4 4 0 0 1 4 -4 h262 a4 4 0 0 1 4 4 v34 h-270 z"/>
-  <line class="sep" x1="800" y1="88" x2="1070" y2="88"/>
-  <text class="cname" x="935" y="74">Package</text>
-  <text class="attr" x="812" y="108">- packageId : String {unique}</text>
-  <text class="attr" x="812" y="125">- name : String</text>
-  <text class="attr" x="812" y="142">- category : PackageCategory</text>
-  <text class="attr" x="812" y="159">- numClasses : Number | null</text>
-  <text class="attr" x="812" y="176">- unlimited : Boolean = false</text>
-  <text class="attr" x="812" y="193">- classType : ClassType</text>
-  <text class="attr" x="812" y="210">- startDate : Date</text>
-  <text class="attr" x="812" y="227">- endDate : Date</text>
-  <text class="attr" x="812" y="244">- price : Number</text>
+  <rect class="box" x="950" y="60" width="210" height="218" rx="4"/>
+  <path class="hdr" d="M950 64 a4 4 0 0 1 4 -4 h202 a4 4 0 0 1 4 4 v34 h-210 z"/>
+  <line class="sep" x1="950" y1="98" x2="1160" y2="98"/>
+  <text class="cname" x="1055" y="84">Package</text>
+  <text class="attr" x="962" y="118">- packageId {unique}</text>
+  <text class="attr" x="962" y="135">- name : String</text>
+  <text class="attr" x="962" y="152">- category : Category</text>
+  <text class="attr" x="962" y="169">- numClasses : Number?</text>
+  <text class="attr" x="962" y="186">- unlimited : Boolean</text>
+  <text class="attr" x="962" y="203">- classType : ClassType</text>
+  <text class="attr" x="962" y="220">- startDate, endDate</text>
+  <text class="attr" x="962" y="237">- price : Number</text>
 
   <!-- ===================== CLASS (Part 2) ===================== -->
-  <rect class="box-p2" x="40" y="348" width="250" height="160" rx="4"/>
-  <path class="hdr-p2" d="M40 352 a4 4 0 0 1 4 -4 h242 a4 4 0 0 1 4 4 v34 h-250 z"/>
-  <line class="sep-p2" x1="40" y1="386" x2="290" y2="386"/>
-  <text class="cname" x="165" y="366">Class</text>
-  <text class="stereo" x="165" y="399">(Part 2)</text>
-  <text class="attr" x="52" y="419">- classId : String {unique}</text>
-  <text class="attr" x="52" y="436">- instructorId : String «FK»</text>
-  <text class="attr" x="52" y="453">- day, time</text>
-  <text class="attr" x="52" y="470">- durationMinutes : Number</text>
-  <text class="attr" x="52" y="487">- classType : ClassType</text>
-  <text class="attr" x="52" y="504">- payRate : Number</text>
+  <rect class="box-p2" x="40" y="370" width="260" height="177" rx="4"/>
+  <path class="hdr-p2" d="M40 374 a4 4 0 0 1 4 -4 h252 a4 4 0 0 1 4 4 v34 h-260 z"/>
+  <line class="sep-p2" x1="40" y1="408" x2="300" y2="408"/>
+  <text class="cname" x="170" y="394">Class</text>
+  <text class="stereo" x="170" y="421">(Part 2, UC2)</text>
+  <text class="attr" x="52" y="441">- classId : String {unique}</text>
+  <text class="attr" x="52" y="458">- instructorId : String «FK»</text>
+  <text class="attr" x="52" y="475">- day : Day, time : "HH:MM"</text>
+  <text class="attr" x="52" y="492">- durationMinutes : Number = 60</text>
+  <text class="attr" x="52" y="509">- classType : ClassType</text>
+  <text class="attr" x="52" y="526">- payRate : Number</text>
 
   <!-- ===================== SALE (Part 2) ===================== -->
-  <rect class="box-p2" x="620" y="348" width="250" height="177" rx="4"/>
-  <path class="hdr-p2" d="M620 352 a4 4 0 0 1 4 -4 h242 a4 4 0 0 1 4 4 v34 h-250 z"/>
-  <line class="sep-p2" x1="620" y1="386" x2="870" y2="386"/>
-  <text class="cname" x="745" y="366">Sale</text>
-  <text class="stereo" x="745" y="399">(Part 2)</text>
-  <text class="attr" x="632" y="419">- saleId : String {unique}</text>
-  <text class="attr" x="632" y="436">- customerId : String «FK»</text>
-  <text class="attr" x="632" y="453">- packageId : String «FK»</text>
-  <text class="attr" x="632" y="470">- amountPaid : Number</text>
-  <text class="attr" x="632" y="487">- paymentMode : String</text>
-  <text class="attr" x="632" y="504">- paidAt, validFrom, validTo</text>
+  <rect class="box-p2" x="360" y="370" width="290" height="245" rx="4"/>
+  <path class="hdr-p2" d="M360 374 a4 4 0 0 1 4 -4 h282 a4 4 0 0 1 4 4 v34 h-290 z"/>
+  <line class="sep-p2" x1="360" y1="408" x2="650" y2="408"/>
+  <text class="cname" x="505" y="394">Sale</text>
+  <text class="stereo" x="505" y="421">(Part 2, UC5)</text>
+  <text class="attr" x="372" y="441">- saleId : String {unique}</text>
+  <text class="attr" x="372" y="458">- customerId : String «FK»</text>
+  <text class="attr" x="372" y="475">- packageId : String «FK»</text>
+  <text class="attr" x="372" y="492">- packageName : String</text>
+  <text class="attr" x="372" y="509">- classesPurchased : Number?</text>
+  <text class="attr" x="372" y="526">- unlimited : Boolean</text>
+  <text class="attr" x="372" y="543">- classType : ClassType</text>
+  <text class="attr" x="372" y="560">- amountPaid, paymentMode</text>
+  <text class="attr" x="372" y="577">- paidAt, validFrom, validTo</text>
+  <line class="sep-p2" x1="360" y1="587" x2="650" y2="587"/>
+  <text class="op" x="372" y="605">/ status : active|future|expired</text>
 
-  <!-- ===================== ATTENDANCE (Part 2) ===================== -->
-  <rect class="box-p2" x="300" y="596" width="300" height="143" rx="4"/>
-  <path class="hdr-p2" d="M300 600 a4 4 0 0 1 4 -4 h292 a4 4 0 0 1 4 4 v34 h-300 z"/>
-  <line class="sep-p2" x1="300" y1="634" x2="600" y2="634"/>
-  <text class="cname" x="450" y="614">Attendance</text>
-  <text class="stereo" x="450" y="647">(Part 2)</text>
-  <text class="attr" x="312" y="667">- classId : String «FK»</text>
-  <text class="attr" x="312" y="684">- instructorId : String «FK»</text>
-  <text class="attr" x="312" y="701">- heldAt : Date</text>
-  <text class="attr" x="312" y="718">- customerIds : String[ ] «FK»</text>
+  <!-- Sale snapshot note -->
+  <path class="note" d="M690 370 h180 l20 20 v94 h-200 z"/>
+  <path class="note" d="M870 370 v20 h20 z"/>
+  <text class="notetxt" x="702" y="412">The four shaded fields are</text>
+  <text class="notetxt" x="702" y="428">copied from the Package at</text>
+  <text class="notetxt" x="702" y="444">the moment of sale. A package</text>
+  <text class="notetxt" x="702" y="460">is editable; a sale is history.</text>
+  <text class="notetxt" x="702" y="476">Decision 16.</text>
 
   <!-- ===================== COUNTER (Part 1) ===================== -->
-  <rect class="box" x="800" y="596" width="270" height="92" rx="4"/>
-  <path class="hdr" d="M800 600 a4 4 0 0 1 4 -4 h262 a4 4 0 0 1 4 4 v34 h-270 z"/>
-  <line class="sep" x1="800" y1="634" x2="1070" y2="634"/>
-  <text class="cname" x="935" y="620">Counter</text>
-  <text class="attr" x="812" y="654">- _id : String  // "instructor"</text>
-  <text class="attr" x="812" y="671">- seq : Number</text>
+  <rect class="box" x="950" y="370" width="210" height="92" rx="4"/>
+  <path class="hdr" d="M950 374 a4 4 0 0 1 4 -4 h202 a4 4 0 0 1 4 4 v34 h-210 z"/>
+  <line class="sep" x1="950" y1="408" x2="1160" y2="408"/>
+  <text class="cname" x="1055" y="394">Counter</text>
+  <text class="attr" x="962" y="428">- _id : String</text>
+  <text class="attr" x="962" y="445">- seq : Number</text>
 
-  <!-- Counter note -->
-  <path class="note" d="M800 706 h250 l20 20 v42 h-270 z"/>
-  <path class="note" d="M1050 706 v20 h20 z"/>
-  <text class="notetxt" x="812" y="726">Supplies every I/C/P/L/S id by</text>
-  <text class="notetxt" x="812" y="742">atomic $inc. Not a domain entity;</text>
-  <text class="notetxt" x="812" y="758">shown because it is a collection.</text>
+  <path class="note" d="M950 486 h190 l20 20 v58 h-210 z"/>
+  <path class="note" d="M1140 486 v20 h20 z"/>
+  <text class="notetxt" x="962" y="508">Supplies every I/C/P/L/S/A</text>
+  <text class="notetxt" x="962" y="524">id by atomic $inc. Not a</text>
+  <text class="notetxt" x="962" y="540">domain entity.</text>
+
+  <!-- ===================== ATTENDANCE (Part 2) ===================== -->
+  <rect class="box-p2" x="40" y="690" width="280" height="160" rx="4"/>
+  <path class="hdr-p2" d="M40 694 a4 4 0 0 1 4 -4 h272 a4 4 0 0 1 4 4 v34 h-280 z"/>
+  <line class="sep-p2" x1="40" y1="728" x2="320" y2="728"/>
+  <text class="cname" x="180" y="714">Attendance</text>
+  <text class="stereo" x="180" y="741">(Part 2, UC6)</text>
+  <text class="attr" x="52" y="761">- attendanceId : String {unique}</text>
+  <text class="attr" x="52" y="778">- classId : String «FK»</text>
+  <text class="attr" x="52" y="795">- instructorId : String «FK»</text>
+  <text class="attr" x="52" y="812">- heldAt : Date</text>
+  <text class="attr" x="52" y="829">- attendees : Attendee [1..*]</text>
+
+  <!-- ===================== ATTENDEE (embedded) ===================== -->
+  <rect class="box-p2" x="420" y="690" width="280" height="160" rx="4"/>
+  <path class="hdr-p2" d="M420 694 a4 4 0 0 1 4 -4 h272 a4 4 0 0 1 4 4 v34 h-280 z"/>
+  <line class="sep-p2" x1="420" y1="728" x2="700" y2="728"/>
+  <text class="cname" x="560" y="714">Attendee</text>
+  <text class="stereo" x="560" y="741">«embedded», decision 17</text>
+  <text class="attr" x="432" y="761">- customerId : String «FK»</text>
+  <text class="attr" x="432" y="778">- usedUnlimited : Boolean</text>
+  <text class="attr" x="432" y="795">- balanceBefore : Number</text>
+  <text class="attr" x="432" y="812">- balanceAfter : Number</text>
+  <text class="notetxt" x="432" y="836">balanceAfter may be negative (step 8)</text>
+
+  <!-- ===================== ENUMERATIONS ===================== -->
+  <rect class="enumbox" x="760" y="690" width="400" height="160" rx="4"/>
+  <text class="legend" x="776" y="712" font-weight="700">Enumerations</text>
+  <text class="enumtxt" x="776" y="734">Role          = manager | instructor</text>
+  <text class="enumtxt" x="776" y="753">ContactMode   = phone | email</text>
+  <text class="enumtxt" x="776" y="772">ClassType     = General | Special</text>
+  <text class="enumtxt" x="776" y="791">Category      = General | Senior</text>
+  <text class="enumtxt" x="776" y="810">PaymentMode   = Cash | Card | Check</text>
+  <text class="enumtxt" x="776" y="829">Day           = Monday .. Sunday</text>
 
   <!-- ===================== ASSOCIATIONS ===================== -->
 
+  <!-- User 0..1 signs in as 1 Instructor -->
+  <path class="edge" d="M300 150 H350" marker-end="url(#arrow)"/>
+  <text class="mult" x="306" y="143">0..1</text>
+  <text class="role" x="300" y="176">signs in as</text>
+  <text class="mult" x="332" y="143">1</text>
+
   <!-- Instructor 1 to 0..* Class : teaches -->
-  <path class="edge" d="M165 268 V348" marker-end="url(#arrow)"/>
-  <text class="mult" x="172" y="288">1</text>
-  <text class="role" x="172" y="313">teaches</text>
-  <text class="mult" x="172" y="340">0..*</text>
+  <path class="edge" d="M380 278 V330 H170 V370" marker-end="url(#arrow)"/>
+  <text class="mult" x="387" y="296">1</text>
+  <text class="role" x="240" y="324">teaches</text>
+  <text class="mult" x="177" y="364">0..*</text>
 
   <!-- Customer 1 to 0..* Sale : buys -->
-  <path class="edge" d="M545 268 V310 H690 V348" marker-end="url(#arrow)"/>
-  <text class="mult" x="552" y="286">1</text>
-  <text class="role" x="588" y="303">buys</text>
-  <text class="mult" x="697" y="342">0..*</text>
+  <path class="edge" d="M740 278 V340 H440 V370" marker-end="url(#arrow)"/>
+  <text class="mult" x="747" y="296">1</text>
+  <text class="role" x="580" y="334">buys</text>
+  <text class="mult" x="447" y="364">0..*</text>
 
   <!-- Package 1 to 0..* Sale : sold as -->
-  <path class="edge" d="M935 268 V310 H800 V348" marker-end="url(#arrow)"/>
-  <text class="mult" x="942" y="286">1</text>
-  <text class="role" x="840" y="303">sold as</text>
-  <text class="mult" x="760" y="342">0..*</text>
+  <path class="edge" d="M1010 278 V310 H580 V370" marker-end="url(#arrow)"/>
+  <text class="mult" x="1017" y="296">1</text>
+  <text class="role" x="800" y="304">sold as</text>
+  <text class="mult" x="587" y="364">0..*</text>
 
-  <!-- Class 1 to 0..* Attendance : held as. Enters the top edge, so no
-       association line ever crosses an attribute row. -->
-  <path class="edge" d="M165 508 V560 H340 V596" marker-end="url(#arrow)"/>
-  <text class="mult" x="172" y="528">1</text>
-  <text class="role" x="196" y="553">held as</text>
-  <text class="mult" x="347" y="590">0..*</text>
+  <!-- Class 1 to 0..* Attendance : held as -->
+  <path class="edge" d="M170 547 V690" marker-end="url(#arrow)"/>
+  <text class="mult" x="177" y="567">1</text>
+  <text class="role" x="177" y="620">held as</text>
+  <text class="mult" x="177" y="684">0..*</text>
 
   <!-- Instructor to Attendance : records -->
-  <path class="edge" d="M290 200 H330 V545 H420 V596" marker-end="url(#arrow)"/>
-  <text class="role" x="336" y="380">records</text>
-  <text class="mult" x="427" y="590">0..*</text>
+  <path class="edge" d="M350 240 H330 V660 H90 V690" marker-end="url(#arrow)"/>
+  <text class="role" x="336" y="450">records</text>
+  <text class="mult" x="97" y="684">0..*</text>
 
-  <!-- Customer to Attendance : attends -->
-  <path class="edge" d="M420 232 H390 V530 H500 V596" marker-end="url(#arrow)"/>
-  <text class="role" x="396" y="420">attends</text>
-  <text class="mult" x="507" y="590">0..*</text>
+  <!-- Attendance composes 1..* Attendee -->
+  <path class="edge" d="M320 770 H420" marker-start="url(#diamond)"/>
+  <text class="mult" x="398" y="763">1..*</text>
+
+  <!-- Customer to Attendee : attends -->
+  <path class="edge" d="M905 278 V670 H560 V690" marker-end="url(#arrow)"/>
+  <text class="role" x="911" y="470">attends</text>
+  <text class="mult" x="567" y="684">0..*</text>
 
   <!-- ===================== LEGEND ===================== -->
-  <rect x="40" y="772" width="620" height="68" rx="4" fill="#f4f7f4" stroke="#c9dbcb" stroke-width="1.2"/>
-  <text class="legend" x="56" y="794" font-weight="700">Legend</text>
-  <rect x="120" y="783" width="26" height="14" fill="#fff" stroke="#3a5840" stroke-width="1.6"/>
-  <text class="legend" x="154" y="795">Built in Part 1</text>
-  <rect x="280" y="783" width="26" height="14" fill="#fff" stroke="#8a9a8c" stroke-width="1.6" stroke-dasharray="6 4"/>
-  <text class="legend" x="314" y="795">Planned for Part 2</text>
-  <text class="legend" x="56" y="822" font-size="10.5" fill="#6b746d">«FK» = a stored reference to another collection. MongoDB does not enforce it; the Express controllers check that the target exists.</text>
+  <rect x="40" y="890" width="1120" height="86" rx="4" fill="#f4f7f4" stroke="#c9dbcb" stroke-width="1.2"/>
+  <text class="legend" x="56" y="912" font-weight="700">Legend</text>
+  <rect x="130" y="901" width="26" height="14" fill="#fff" stroke="#3a5840" stroke-width="1.6"/>
+  <text class="legend" x="164" y="913">Built in Part 1</text>
+  <rect x="300" y="901" width="26" height="14" fill="#fff" stroke="#4a7050" stroke-width="1.6"/>
+  <path d="M300 901 h26 v14 h-26 z" fill="#f6ece6" opacity="0.6"/>
+  <text class="legend" x="334" y="913">Added in Part 2</text>
+  <text class="legend" x="56" y="940" font-size="10.5" fill="#6b746d">«FK» = a stored reference to another collection. MongoDB does not enforce it; the Express controllers check that the target exists before saving.</text>
+  <text class="legend" x="56" y="958" font-size="10.5" fill="#6b746d">A filled diamond is composition: an Attendee exists only inside its Attendance sheet. A leading / marks a derived value, which Mongoose calls a virtual.</text>
 </svg>
 <figcaption>Class diagram</figcaption></figure>
-<p>Six domain collections plus <code>counters</code>. Three points are worth drawing out:</p>
+<p>Eight collections and one embedded record. Part 2 added <code>users</code>, <code>classes</code>, <code>sales</code>, <code>attendance</code> and the embedded <code>Attendee</code>.</p>
+<p>Points worth drawing out:</p>
 <ul>
 <li><strong>MongoDB does not enforce references.</strong> There is no foreign key and no
- <code>JOIN</code>. A <code>sale</code> can store a <code>customerId</code> matching no customer, and the
- database will accept it. Every reference that matters is therefore checked in
- the Express controller. The <code>«FK»</code> marks on the diagram denote intent, not a
- constraint.
+ <code>JOIN</code>. A sale can store a <code>customerId</code> matching no customer, and the
+ database will accept it. Every reference that matters is therefore checked
+ in the Express controller before saving; the <code>«FK»</code> marks denote intent, not
+ a constraint. This is why &quot;No customer with that id&quot; is an error message the
+ application produces rather than one the database raises.
 </li>
-<li><strong>Enumerated values are enforced in two places</strong>: the Mongoose schema and
- the React form. The schema is the one that counts, because a request can
- always arrive without passing through the form.
+<li><strong><code>Sale</code> duplicates part of <code>Package</code> on purpose.</strong> The four snapshot fields
+ are the subject of decision 16: a package is editable, a sale is history.
 </li>
-<li><strong><code>fullName</code> is derived, not stored.</strong> Storing it would mean two fields that
- can disagree with the name they are built from.
+<li><strong><code>Attendee</code> is drawn with a filled diamond</strong>, UML for composition: it
+ exists only inside its sheet and has no identity of its own.
+</li>
+<li><strong><code>User</code> points at an instructor rather than copying one.</strong> The login and
+ the staff record cannot drift apart, and a manager account simply has no
+ instructor to point at.
+</li>
+<li><strong>Derived values are marked with a leading <code>/</code></strong> and are Mongoose virtuals:
+ <code>fullName</code>, <code>endTime</code>, <code>status</code>, <code>headcount</code>. Storing them would create a
+ second field that can disagree with the one it is built from.
 </li></ul>
-<h3 id="5-3-sequence-diagram-for-uc1">5.3 Sequence diagram for UC1</h3>
+<h3 id="5-3-sequence-diagram-uc1-add-an-instructor">5.3 Sequence diagram — UC1, Add an instructor</h3>
 <figure class="diagram"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 1080" font-family="Helvetica, Arial, sans-serif">
   <title>UC1 Add Instructor sequence diagram</title>
   <desc>UML sequence diagram for the Add Instructor use case, including the duplicate-name confirmation branch.</desc>
@@ -669,8 +937,189 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
 </svg>
 <figcaption>UC1 sequence diagram</figcaption></figure>
 <p>UC1 is diagrammed because it is the only Part 1 use case containing a branch. Each message is annotated with the specification step it implements.</p>
-<p>The <code>alt</code> fragment is the duplicate-name interaction. The ordering of messages 10 and 11 (validate, <em>then</em> generate the ID) is deliberate and is explained in decision 15.</p>
-<h3 id="5-4-architecture-and-deployment">5.4 Architecture and deployment</h3>
+<p>The <code>alt</code> fragment is the duplicate-name interaction. The ordering of validation <em>before</em> ID generation is deliberate and is explained in decision 15.</p>
+<h3 id="5-4-sequence-diagram-uc6-record-class-attendance">5.4 Sequence diagram — UC6, Record class attendance</h3>
+<figure class="diagram"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 1010" font-family="Helvetica, Arial, sans-serif">
+  <title>UC6 Record class attendance sequence diagram</title>
+  <desc>UML sequence diagram for the Record Class Attendance use case, including the preview that warns about the schedule and the balance, and the confirmation branch that allows a negative balance.</desc>
+
+  <defs>
+    <marker id="solid" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#3a5840"/>
+    </marker>
+    <marker id="open" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10" fill="none" stroke="#6b746d" stroke-width="1.4"/>
+    </marker>
+  </defs>
+
+  <style>
+    .lane      { fill:#e5ede6; stroke:#3a5840; stroke-width:1.6; }
+    .lane-ext  { fill:#f6ece6; stroke:#b4714d; stroke-width:1.6; }
+    .lname     { font-size:12.5px; font-weight:700; fill:#1c211d; text-anchor:middle; }
+    .lsub      { font-size:10px; fill:#6b746d; text-anchor:middle; font-family:"SF Mono", Menlo, monospace; }
+    .life      { stroke:#a8afaa; stroke-width:1.2; stroke-dasharray:5 5; }
+    .act       { fill:#e5ede6; stroke:#3a5840; stroke-width:1.1; }
+    .call      { stroke:#3a5840; stroke-width:1.5; fill:none; }
+    .ret       { stroke:#6b746d; stroke-width:1.3; fill:none; stroke-dasharray:6 4; }
+    .msg       { font-size:11.5px; fill:#1c211d; }
+    .msgm      { font-size:11px; fill:#3d453f; font-family:"SF Mono", Menlo, monospace; }
+    .retm      { font-size:11px; fill:#6b746d; font-style:italic; }
+    .frame     { fill:none; stroke:#8a5c14; stroke-width:1.3; }
+    .frametag  { fill:#fdf4e3; stroke:#8a5c14; stroke-width:1.3; }
+    .frametxt  { font-size:11px; font-weight:700; fill:#8a5c14; }
+    .guard     { font-size:11px; fill:#8a5c14; font-style:italic; }
+    .step      { font-size:10px; fill:#4a7050; font-weight:700; }
+    .note      { fill:#fdf4e3; stroke:#d8bc7f; stroke-width:1.2; }
+    .notetxt   { font-size:11px; fill:#8a5c14; }
+  </style>
+
+  <!-- ============ LIFELINE HEADERS ============ -->
+  <rect class="lane" x="20" y="34" width="130" height="52" rx="4"/>
+  <text class="lname" x="85" y="56">Instructor</text>
+  <text class="lsub" x="85" y="72">«actor»</text>
+
+  <rect class="lane" x="205" y="34" width="200" height="52" rx="4"/>
+  <text class="lname" x="305" y="56">Attendance sheet</text>
+  <text class="lsub" x="305" y="72">RecordAttendance.jsx</text>
+
+  <rect class="lane" x="455" y="34" width="210" height="52" rx="4"/>
+  <text class="lname" x="560" y="56">Express controller</text>
+  <text class="lsub" x="560" y="72">attendanceController.js</text>
+
+  <rect class="lane" x="725" y="34" width="170" height="52" rx="4"/>
+  <text class="lname" x="810" y="56">Services</text>
+  <text class="lsub" x="810" y="72">messaging</text>
+
+  <rect class="lane-ext" x="965" y="34" width="170" height="52" rx="4"/>
+  <text class="lname" x="1050" y="56">MongoDB</text>
+  <text class="lsub" x="1050" y="72">via Mongoose</text>
+
+  <!-- ============ LIFELINES ============ -->
+  <line class="life" x1="85"   y1="86" x2="85"   y2="930"/>
+  <line class="life" x1="305"  y1="86" x2="305"  y2="930"/>
+  <line class="life" x1="560"  y1="86" x2="560"  y2="930"/>
+  <line class="life" x1="810"  y1="86" x2="810"  y2="930"/>
+  <line class="life" x1="1050" y1="86" x2="1050" y2="930"/>
+
+  <!-- ============ ACTIVATION BARS ============ -->
+  <rect class="act" x="299" y="110" width="12" height="800"/>
+  <rect class="act" x="554" y="150" width="12" height="130"/>
+  <rect class="act" x="554" y="360" width="12" height="60"/>
+  <rect class="act" x="554" y="600" width="12" height="270"/>
+  <rect class="act" x="804" y="700" width="12" height="60"/>
+
+  <!-- ============ STEPS 3, 4 and 6 ============ -->
+  <text class="step" x="24" y="106">steps 3, 4, 6</text>
+  <path class="call" d="M85 122 H299" marker-end="url(#solid)"/>
+  <text class="msg" x="96" y="117">choose the class, the date and time, tick the names</text>
+
+  <!-- preview request -->
+  <path class="call" d="M311 162 H554" marker-end="url(#solid)"/>
+  <text class="msgm" x="322" y="157">POST /api/attendance/preview</text>
+
+  <path class="call" d="M566 196 H1050" marker-end="url(#solid)"/>
+  <text class="msgm" x="578" y="191">find class, customers, their sales</text>
+
+  <path class="ret" d="M1050 230 H566" marker-end="url(#open)"/>
+  <text class="retm" x="578" y="225">documents</text>
+
+  <text class="step" x="578" y="258">steps 5 and 8, before anything is saved</text>
+  <path class="ret" d="M554 272 H311" marker-end="url(#open)"/>
+  <text class="retm" x="322" y="267">balance effect per person, schedule warning</text>
+
+  <path class="ret" d="M299 306 H85" marker-end="url(#open)"/>
+  <text class="retm" x="96" y="301">"scheduled for Tuesday 09:00, sheet says Thursday"</text>
+
+  <!-- ============ STEP 7: SAVE ============ -->
+  <text class="step" x="24" y="340">step 7</text>
+  <path class="call" d="M85 352 H299" marker-end="url(#solid)"/>
+  <text class="msg" x="96" y="347">save the attendance</text>
+
+  <path class="call" d="M311 384 H554" marker-end="url(#solid)"/>
+  <text class="msgm" x="322" y="379">POST /api/attendance</text>
+
+  <path class="call" d="M566 412 H1050" marker-end="url(#solid)"/>
+  <text class="msgm" x="578" y="407">re-read the class, customers and sales</text>
+
+  <!-- ============ ALT FRAME: STEP 8 ============ -->
+  <rect class="frame" x="60" y="440" width="1020" height="140" rx="3"/>
+  <path class="frametag" d="M60 440 h70 v22 l-10 10 H60 z"/>
+  <text class="frametxt" x="72" y="456">alt</text>
+  <text class="guard" x="140" y="456">[ a customer has no classes left — UC6 step 8 ]</text>
+
+  <path class="ret" d="M554 486 H311" marker-end="url(#open)"/>
+  <text class="retm" x="322" y="481">409 Conflict, requiresConfirmation, the names and balances</text>
+
+  <path class="ret" d="M299 514 H85" marker-end="url(#open)"/>
+  <text class="retm" x="96" y="509">"Dev Tester has no classes left. Check them in anyway?"</text>
+
+  <path class="call" d="M85 546 H299" marker-end="url(#solid)"/>
+  <text class="msg" x="96" y="541">check them in anyway</text>
+
+  <path class="call" d="M311 572 H554" marker-end="url(#solid)"/>
+  <text class="msgm" x="322" y="567">POST /api/attendance { allowNegativeBalance: true }</text>
+
+  <!-- ============ STEPS 9 and 10 ============ -->
+  <text class="step" x="578" y="620">steps 9 and 10</text>
+  <path class="call" d="M566 634 H1050" marker-end="url(#solid)"/>
+  <text class="msgm" x="578" y="629">save the Attendance sheet (balanceBefore / balanceAfter per person)</text>
+
+  <path class="call" d="M566 668 H1050" marker-end="url(#solid)"/>
+  <text class="msgm" x="578" y="663">$inc classBalance by -1, for everyone not on an unlimited package</text>
+
+  <!-- ============ LOOP FRAME: MESSAGES ============ -->
+  <rect class="frame" x="520" y="686" width="560" height="100" rx="3"/>
+  <path class="frametag" d="M520 686 h80 v22 l-10 10 H520 z"/>
+  <text class="frametxt" x="532" y="702">loop</text>
+  <text class="guard" x="610" y="702">[ for each attendee ]</text>
+
+  <path class="call" d="M566 730 H804" marker-end="url(#solid)"/>
+  <text class="msgm" x="578" y="725">checkInMessage(firstName, heldAt, balance)</text>
+
+  <path class="ret" d="M804 762 H566" marker-end="url(#open)"/>
+  <text class="retm" x="578" y="757">"Hello Priya! ... Your class-balance is 15."</text>
+
+  <!-- ============ RESPONSE ============ -->
+  <path class="ret" d="M554 816 H311" marker-end="url(#open)"/>
+  <text class="retm" x="322" y="811">201 Created: the sheet, and every message that was sent</text>
+
+  <path class="ret" d="M299 850 H85" marker-end="url(#open)"/>
+  <text class="retm" x="96" y="845">"A00003 saved: 2 checked in", with each confirmation shown</text>
+
+  <!-- ============ NOTES ============ -->
+  <path class="note" d="M20 886 h560 l18 18 v56 H20 z"/>
+  <path class="note" d="M580 886 v18 h18 z"/>
+  <text class="notetxt" x="32" y="906">The preview and the save run the SAME assessment, so the</text>
+  <text class="notetxt" x="32" y="922">warning the instructor saw and the balance that is written</text>
+  <text class="notetxt" x="32" y="938">cannot disagree. The save repeats it because the browser is</text>
+  <text class="notetxt" x="32" y="954">not where a rule can live.</text>
+
+  <path class="note" d="M620 886 h500 l18 18 v56 H620 z"/>
+  <path class="note" d="M1120 886 v18 h18 z"/>
+  <text class="notetxt" x="632" y="906">Messages are logged, not delivered (decision 3). The sheet</text>
+  <text class="notetxt" x="632" y="922">is written BEFORE the balances: a failure then leaves a</text>
+  <text class="notetxt" x="632" y="938">visible sheet with an un-deducted balance, which a manager</text>
+  <text class="notetxt" x="632" y="954">can see and fix, rather than the reverse.</text>
+</svg>
+<figcaption>UC6 sequence diagram</figcaption></figure>
+<p>UC6 is the second sequence diagram because it is the most branching flow in the system, and the only one that writes to three places at once.</p>
+<p>What the diagram makes visible:</p>
+<ul>
+<li><strong>The preview and the save run the same assessment</strong>, so the warning the
+ instructor saw and the balance that is written cannot disagree. The save
+ repeats the work rather than trusting the browser&#x27;s earlier question.
+</li>
+<li><strong>The <code>alt</code> fragment is step 8</strong>: a question, not a rejection, with the
+ second request carrying <code>allowNegativeBalance</code>.
+</li>
+<li><strong>The <code>loop</code> fragment is step 10</strong>, one message per attendee, each carrying
+ the balance that was actually written.
+</li>
+<li><strong>The sheet is written before the balances change</strong>, for the reason given in
+ section 4.5: a visible sheet with an un-deducted balance is recoverable, a
+ silent deduction with no sheet is not.
+</li></ul>
+<h3 id="5-5-architecture-and-deployment">5.5 Architecture and deployment</h3>
 <figure class="diagram"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 940" font-family="Helvetica, Arial, sans-serif">
   <title>YogiTrack architecture and deployment</title>
   <desc>Component view of one request through the MERN stack, and the development and production deployment topologies.</desc>
@@ -723,8 +1172,9 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
   <rect class="comp" x="240" y="92" width="165" height="96" rx="5"/>
   <text class="ctitle" x="322" y="116">Middleware</text>
   <text class="cfile" x="322" y="132">server/middleware/</text>
-  <text class="cdesc" x="322" y="152">cors, express.json,</text>
-  <text class="cdesc" x="322" y="166">error handler</text>
+  <text class="cdesc" x="322" y="148">cors, express.json,</text>
+  <text class="cdesc" x="322" y="162">requireAuth, requireRole,</text>
+  <text class="cdesc" x="322" y="176">error handler</text>
 
   <!-- Router -->
   <rect class="comp" x="440" y="92" width="145" height="96" rx="5"/>
@@ -763,11 +1213,12 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
   <path class="flow-db" d="M975 140 H1010" marker-end="url(#ao)"/>
 
   <!-- Services hanging off the controller -->
-  <rect class="comp-svc" x="600" y="240" width="205" height="80" rx="5"/>
+  <rect class="comp-svc" x="600" y="240" width="205" height="96" rx="5"/>
   <text class="ctitle" x="702" y="262">Services</text>
   <text class="cfile" x="702" y="277">server/services/</text>
-  <text class="cdesc" x="702" y="296">idGenerator: atomic I/C/P ids</text>
+  <text class="cdesc" x="702" y="296">idGenerator: atomic ids</text>
   <text class="cdesc" x="702" y="310">messaging: confirmations</text>
+  <text class="cdesc" x="702" y="324">tokens: sign and verify JWT</text>
   <path class="flow" d="M702 188 V240" marker-end="url(#a)"/>
 
   <!-- note on the return path -->
@@ -878,8 +1329,9 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
 </svg>
 <figcaption>Architecture and deployment</figcaption></figure>
 <p>The component view shows the path of a single request; the deployment view contrasts development with production; the third panel shows the delivery pipeline.</p>
+<p>Part 2 added two boxes to the component view: <code>requireAuth</code> and <code>requireRole</code> in the middleware stack, which every protected request passes through before a route sees it, and the <code>tokens</code> service that signs and verifies them.</p>
 <h2 id="6-key-design-decisions">6. Key design decisions</h2>
-<p>Fifteen decisions are recorded in full, with rejected alternatives, in <a href="07-design-decisions.md"><code>07-design-decisions.md</code></a>. The six that most shape the application are summarised here.</p>
+<p>Eighteen decisions are recorded in full, with rejected alternatives, in <a href="07-design-decisions.md"><code>07-design-decisions.md</code></a>. The ones that most shape the application are summarised here: six from Part 1, then the four that Part 2 added or settled.</p>
 <h3 id="6-1-human-readable-ids-come-from-an-atomic-counter">6.1 Human-readable IDs come from an atomic counter</h3>
 <p><strong>Decision.</strong> A <code>counters</code> collection holds one document per ID type. Each new ID is produced by <code>findOneAndUpdate</code> with <code>$inc</code>, then formatted as a prefix plus a zero-padded number: <code>I00001</code>, <code>C00001</code>.</p>
 <p><strong>Rejected:</strong> counting the existing documents and adding one. That is a read followed by a write, and two managers saving simultaneously would both read 12 and both write 13: a lost update, and two instructors sharing an ID. <code>$inc</code> is a single atomic operation inside MongoDB, so every caller is guaranteed a distinct number.</p>
@@ -903,6 +1355,23 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
 <h3 id="6-6-one-repository-with-express-serving-the-react-build-in-production">6.6 One repository, with Express serving the React build in production</h3>
 <p><strong>Decision.</strong> A single repository: Express at the root, React in <code>client/</code>. In development the two run as separate processes and Vite proxies <code>/api</code> to Express. In production a build step compiles the React app and Express serves the result alongside the API, as one web process.</p>
 <p><strong>Why.</strong> One repository means one GitHub project, one Heroku application and one pipeline, the simplest thing that satisfies the Part 2 requirements. And because the frontend only ever uses relative URLs such as <code>/api/instructors</code>, <strong>no application code differs between development and production.</strong> The proxy exists precisely so that the development-only difference stays in configuration rather than leaking into the code.</p>
+<h3 id="6-7-authentication-is-real-and-enforced-on-the-server">6.7 Authentication is real, and enforced on the server</h3>
+<p><strong>Decision.</strong> Accounts with bcrypt-hashed passwords, a signed token carrying the role, and role checks in Express middleware on every protected route.</p>
+<p><strong>Rejected:</strong> a role selector in the interface. It would have demonstrated the two actors&#x27; views for a fraction of the work, and it authenticates nobody: the control that chooses the role is sitting in the browser, where anyone can change it. The Part 1 review asked for authentication, and a selector would not have been an answer to it.</p>
+<p><strong>Rejected:</strong> server-side sessions. They need a store, and a Heroku dyno restarts daily with its filesystem discarded, so sessions would either vanish or require another piece of infrastructure. A signed token needs no storage at all. The cost is that a token cannot be revoked before it expires, which is why its lifetime is eight hours rather than a week.</p>
+<p><strong>The part that matters most</strong> is where the check lives. React route guards and role-filtered navigation are courtesies: they stop a user being offered a screen that would only refuse them. The enforcement is <code>server/middleware/auth.js</code>, because the page&#x27;s JavaScript is already in the browser and anyone can send a request with <code>curl</code>. Both exist; only one of them is a security boundary, and the code comments say which.</p>
+<h3 id="6-8-a-sale-snapshots-the-package-it-sold">6.8 A sale snapshots the package it sold</h3>
+<p><strong>Decision.</strong> <code>packageName</code>, <code>classesPurchased</code>, <code>unlimited</code> and <code>classType</code> are copied onto the sale when it is recorded, alongside the <code>packageId</code>.</p>
+<p><strong>Rejected:</strong> holding only the reference, which is the normal relational instinct and is wrong here. A package is editable and a sale is a historical fact. Raise the price of the 10 Class Pass and every past sale of it would silently change meaning; the package sales report would then show revenue the studio never took, and UC6 would decide a customer&#x27;s entitlement from terms they never bought.</p>
+<p>The duplication is the point, not a compromise, and the field comments in <code>Sale.js</code> say so, so that a later reader does not &quot;normalise&quot; it away.</p>
+<h3 id="6-9-attendance-records-what-a-check-in-did-not-just-who-was-there">6.9 Attendance records what a check-in did, not just who was there</h3>
+<p><strong>Decision.</strong> Each attendee on a sheet is a sub-document holding <code>usedUnlimited</code>, <code>balanceBefore</code> and <code>balanceAfter</code>.</p>
+<p><strong>Rejected:</strong> the plain <code>customerIds: []</code> array from the Part 1 data-model sketch. Two requirements rule it out. UC6 step 8 permits a check-in that leaves a negative balance &quot;to be resolved later&quot;, and resolving it later means knowing what happened. And an unlimited customer consumes nothing at all, so without <code>usedUnlimited</code> nobody can tell a legitimate free check-in from a balance that failed to decrement.</p>
+<p>This is the only place where the built model deliberately departs from the Part 1 sketch, which is why it is recorded rather than quietly changed.</p>
+<h3 id="6-10-reports-are-aggregation-pipelines-not-loops">6.10 Reports are aggregation pipelines, not loops</h3>
+<p><strong>Decision.</strong> All four UC7 reports are MongoDB aggregation pipelines.</p>
+<p><strong>Rejected:</strong> <code>find()</code> followed by JavaScript. For the data a studio has, both are fast. The pipeline is still the better answer: the joining, grouping and arithmetic happen inside the database rather than after every document has been copied out of it, and the cost of the alternative grows with the collection while the pipeline&#x27;s does not.</p>
+<p>It is also the honest answer to a stack question. A MERN project that treats MongoDB as a place to put documents and does all its thinking in Node has not really used the database. <code>$lookup</code>, <code>$group</code>, <code>$map</code> and <code>$switch</code> are where MongoDB stops being a slower key-value store, and the pipelines are commented stage by stage because that is the least familiar part of the stack for someone arriving from SQL or from Java.</p>
 <h2 id="7-technology-stack-and-how-it-is-used">7. Technology stack and how it is used</h2>
 <p>The stack is prescribed by the course. What follows is how each part is actually used, rather than merely present.</p>
 <h3 id="7-1-mongodb-and-mongoose">7.1 MongoDB and Mongoose</h3>
@@ -915,7 +1384,13 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
 <tr><td><code>timestamps</code></td><td>All models</td><td><code>createdAt</code> / <code>updatedAt</code> maintained automatically; used for newest-first ordering and needed by the UC7 reports.</td></tr>
 <tr><td>Atomic <code>$inc</code> with <code>upsert</code></td><td><code>idGenerator.js</code></td><td>Race-free ID allocation, and the counter document creates itself on first use.</td></tr>
 <tr><td><code>immutable</code></td><td><code>instructorId</code></td><td>An ID cannot be changed after assignment, even by a later update.</td></tr>
+<tr><td>Conditional <code>required</code></td><td><code>numClasses</code>, <code>User.instructorId</code></td><td>A function rather than <code>true</code>, so a field can be mandatory for one kind of document and legitimately absent for another.</td></tr>
+<tr><td>Sub-document schema</td><td><code>Attendance.attendees</code></td><td>Each attendee is a validated shape, with <code>_id: false</code> because the rows have no identity of their own.</td></tr>
+<tr><td><code>select: false</code></td><td><code>User.passwordHash</code></td><td>The hash is left out of every query result unless asked for by name, so a handler cannot leak it by accident.</td></tr>
+<tr><td>Aggregation pipelines</td><td>All four UC7 reports</td><td><code>$group</code>, <code>$lookup</code>, <code>$unwind</code>, <code>$map</code>, <code>$switch</code> and <code>$$NOW</code>: joining and totalling inside the database rather than in Node.</td></tr>
+<tr><td>Atomic <code>$inc</code> on a balance</td><td>UC5 and UC6</td><td>Two sales, or a sale and a check-in, cannot lose each other&#x27;s update the way a read-modify-write would.</td></tr>
 </tbody></table>
+<p><strong>Indexes added in Part 2</strong>, each because a query runs on every request rather than occasionally: <code>{ day, time }</code> and <code>{ instructorId }</code> on classes (the conflict check reads one day; UC6 reads one instructor&#x27;s classes), <code>{ customerId, validTo }</code> and <code>{ paidAt }</code> on sales (entitlement at check-in, and the sales report&#x27;s order), <code>{ classId, heldAt }</code>, <code>{ instructorId, heldAt }</code> and <code>{ &#x27;attendees.customerId&#x27; }</code> on attendance (the check-in counts and the monthly payment report), and a unique <code>{ username }</code> on users, which runs on every sign-in.</p>
 <h3 id="7-2-express-and-node">7.2 Express and Node</h3>
 <ul>
 <li><strong>Express 5</strong>, which forwards errors thrown inside <code>async</code> handlers to the
@@ -928,6 +1403,13 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
  the right HTTP status and a JSON body the UI can render. Unexpected errors
  are logged in full but returned as a generic message, so that internal paths
  and stack frames never reach a browser.
+</li>
+<li><strong>Middleware as the authorisation layer.</strong> <code>requireAuth</code> and <code>requireRole</code>
+ are listed in front of a route, so a protected route cannot be reached
+ without passing them, and &quot;who may do this&quot; is visible in the route table
+ rather than buried in a handler. <code>requireRole</code> is a function that returns a
+ middleware function, so one implementation serves every combination of
+ roles.
 </li>
 <li><strong>Layered structure</strong> (<code>routes / controllers / services / models</code>), so that
  each file answers one question: which URL, what rule, what shared capability,
@@ -948,8 +1430,20 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
 <li><strong>A single status value</strong> (<code>idle | checking | saving</code>) rather than several
  booleans, which cannot contradict each other the way three flags can.
 </li>
+<li><strong>Context for the signed-in user.</strong> The header needs their name, the
+ navigation their role, and the route guard whether anyone is signed in at
+ all. Threading that through every component as props would mean components
+ that do not care about the user still having to forward it, so it is held
+ once in an <code>AuthProvider</code> and read with a <code>useAuth</code> hook.
+</li>
+<li><strong>A three-state session</strong>, <code>checking | ready</code>, with the user alongside.
+ Without the third state the application would show the login screen for a
+ moment on every refresh while the stored token was being verified, and a
+ working app would look broken.
+</li>
 <li><strong>React Router</strong> for client-side navigation, with a shared layout rendered
- once around every page.
+ once around every page, and guard routes that protect a whole group of pages
+ rather than each page checking for itself.
 </li>
 <li><strong>A single API layer.</strong> No component contains a URL; they call named
  functions in <code>src/api/</code>. Note that <code>fetch</code> does <em>not</em> reject on a 4xx. A
@@ -967,6 +1461,9 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
 <tr><td><code>@ControllerAdvice</code></td><td>The error-handling middleware</td></tr>
 <tr><td><code>Future</code>/<code>CompletableFuture</code></td><td><code>Promise</code>, consumed with <code>async</code>/<code>await</code></td></tr>
 <tr><td><code>String.format(&quot;%05d&quot;, n)</code></td><td><code>String(n).padStart(5, &#x27;0&#x27;)</code></td></tr>
+<tr><td><code>@PreAuthorize(&quot;hasRole(...)&quot;)</code></td><td><code>requireRole(&#x27;manager&#x27;)</code> as middleware</td></tr>
+<tr><td>An application-scoped bean</td><td>React context, read with a hook</td></tr>
+<tr><td>Streams: <code>filter / map / collect</code></td><td>An aggregation pipeline, written as data and run by the database</td></tr>
 </tbody></table>
 <p>The largest genuine difference is <strong>asynchrony</strong>. Almost every database call returns a <code>Promise</code>, a placeholder for a value that is not ready yet, and <code>await</code> suspends the function until it settles. Code after an <code>await</code> is guaranteed to see the result; code that forgets the <code>await</code> silently receives the <code>Promise</code> object instead of the value, which is the single most common source of confusing bugs when coming from synchronous Java.</p>
 <h2 id="8-code-organisation">8. Code organisation</h2>
@@ -974,7 +1471,9 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
   package.json           server dependencies, ES modules, Heroku build scripts
   .env.example           names of required variables, no real values
   .gitignore             node_modules, .env, client build output
-  README.md              how to run it, what the endpoints are
+  README.md              how to run it, what the endpoints are, who may call them
+  .github/workflows/
+    ci.yml               lint, build, boot, and smoke-test every push
   server/
     server.js            entry point: middleware, routes, production static serving
     config/db.js         the single shared MongoDB connection
@@ -984,36 +1483,50 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
       Customer.js          UC4
       Package.js           UC3
       personFields.js      the six fields UC1 and UC4 share
-    routes/              URL → controller function
-      instructorRoutes.js
-      customerRoutes.js
-      packageRoutes.js
+      Class.js             UC2, with the clash test as a method
+      Sale.js              UC5, including the package snapshot
+      Attendance.js        UC6, with the embedded attendee record
+      User.js              accounts, roles, bcrypt hashing
+    routes/              URL -&gt; controller function, with the role per endpoint
+      authRoutes.js  instructorRoutes.js  customerRoutes.js
+      packageRoutes.js  classRoutes.js  saleRoutes.js
+      attendanceRoutes.js  reportRoutes.js
     controllers/         business rules
-      instructorController.js
-      customerController.js
-      packageController.js
+      authController.js        sign in, create accounts
+      instructorController.js  customerController.js  packageController.js
+      classController.js       conflict detection and suggested slots
+      saleController.js        the three UC5 validations, balance update
+      attendanceController.js  entitlement, step 8, check-in messages
+      reportController.js      the four aggregation pipelines
     scripts/
       seedPackages.js      loads the studio&#x27;s real price list (dev convenience)
+      createManager.js     creates or resets the first manager account
     services/
-      idGenerator.js       atomic I/C/P ids
-      messaging.js         confirmation messages (stubbed in Part 1)
+      idGenerator.js       atomic I/C/P/L/S/A ids
+      messaging.js         confirmation messages (stubbed; decision 3)
+      tokens.js            signs and verifies the session token
     utils/
       nameLookup.js        the name-match rule both duplicate checks use
     middleware/
+      auth.js              requireAuth (401) and requireRole (403)
       errorHandler.js      one place that turns any error into a JSON response
   client/
     vite.config.js       dev server, and the /api proxy to Express
     src/
       api/               one function per endpoint; the only place URLs appear
+                         client.js attaches the token and handles a 401
+                         session.js is the one place the token is stored
+      auth/              AuthContext (who is signed in), RequireAuth (route guard)
       components/        Layout, Alert, FormField, RadioGroup, PersonForm
-      pages/             one per screen (thin wrappers over PersonForm for
-                         the two add screens)
+      pages/             one per screen
       index.css          design tokens and all styling
   tools/
     build-report.py      renders this report to a printable HTML file
   docs/                  specification, decisions, UML models, this report
 </code></pre>
-<p><strong>Commenting.</strong> Every file opens with a block explaining what it is, why it exists and how it connects to the others. Comments in the body explain <em>reasoning</em> rather than restating the code: why the routes are ordered as they are, why an error handler needs four parameters, why an effect&#x27;s dependency array is empty. Anything that differs from Java is called out where it appears.</p>
+<p><strong>What Part 2 did not change</strong> is as telling as what it added. No Part 1 model was restructured, no Part 1 controller was rewritten, and the request pipeline is the same one UC1 established. The four new use cases are four more instances of a pattern that already existed, which is what &quot;Part 2 is purely additive&quot; was supposed to buy, and it is the return on having built UC1 slowly.</p>
+<p><strong>Commenting.</strong> Every file opens with a block explaining what it is, why it exists and how it connects to the others. Comments in the body explain <em>reasoning</em> rather than restating the code: why the routes are ordered as they are, why an error handler needs four parameters, why the sheet is saved before the balances, why <code>$inc</code> rather than read-modify-write. Anything that differs from Java is called out where it appears, and every aggregation stage is explained in place.</p>
+<p><strong>Commit history.</strong> The work is committed one working piece at a time, with messages that explain why rather than what: authentication, then each use case end to end, then the responsive pass, the CI update, and the documentation. Several of them record a defect that testing found and what was actually wrong, which is the part of a history worth reading later.</p>
 <h2 id="9-user-interface-design">9. User interface design</h2>
 <h3 id="9-1-principles-applied">9.1 Principles applied</h3>
 <ul>
@@ -1037,27 +1550,54 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
 <li><strong>Honest state.</strong> Buttons are disabled and relabelled while a request is in
  flight (&quot;Checking name…&quot;, &quot;Saving…&quot;), so the interface never looks idle while
  it is working.
+</li>
+<li><strong>The interface shows a role only what belongs to it.</strong> An instructor&#x27;s
+ navigation and home screen contain the one use case that is theirs. Screens
+ for another role are left out entirely rather than greyed out: a greyed
+ tile says &quot;not built yet&quot;, which would be a lie when the answer is &quot;not
+ yours&quot;.
+</li>
+<li><strong>A warning is not an error.</strong> Part 2 introduced three situations where the
+ system knows something is unusual but must not stop the user: a schedule
+ clash with alternatives offered, a sheet filed on the wrong day, and a
+ customer with no classes left. All three use the amber warning panel with
+ the way forward in it, and the red error panel stays for things that
+ actually failed.
 </li></ul>
 <h3 id="9-2-why-no-css-framework">9.2 Why no CSS framework</h3>
 <p>Bootstrap or Tailwind would have been quicker to start. Hand-written CSS was chosen because every rule is one that can be explained and defended, the application is small enough that a framework would add more to learn than it saves, and the result has no dependency to keep up to date. The cost is that the components had to be built by hand; the benefit is that there is nothing in the interface that is not understood.</p>
 <h3 id="9-3-the-screens">9.3 The screens</h3>
-<p>Seven screens, each doing one thing.</p>
-<table><thead><tr><th>Screen</th><th>Route</th><th>What it does</th></tr></thead><tbody>
-<tr><td>Home</td><td><code>/</code></td><td>One tile per use case, with the Part 2 tiles visibly greyed out. A manager can see the whole scope of the application at a glance, and the increment from Part 1 to Part 2 is obvious rather than hidden.</td></tr>
-<tr><td>Add instructor</td><td><code>/instructors/new</code></td><td>UC1. Six fields in three labelled groups, the duplicate-name prompt, and the generated ID and welcome message on success.</td></tr>
-<tr><td>Instructors</td><td><code>/instructors</code></td><td>Every instructor, newest first, with their preferred contact method as a badge.</td></tr>
-<tr><td>Add customer</td><td><code>/customers/new</code></td><td>UC4. The same form component as UC1, with the opening class balance confirmed on success.</td></tr>
-<tr><td>Customers</td><td><code>/customers</code></td><td>Adds a class-balance column. A negative balance is coloured rather than hidden, because UC6 makes it a legitimate state.</td></tr>
-<tr><td>Add package</td><td><code>/packages/new</code></td><td>UC3. The four class-count choices from the specification as one radio group, so &quot;unlimited&quot; is a first-class option rather than a special number.</td></tr>
-<tr><td>Packages</td><td><code>/packages</code></td><td>Laid out to read like the studio&#x27;s printed price list: what you get, who it is for, how long it lasts, what it costs.</td></tr>
+<p>Fourteen screens, each doing one thing. The <strong>Role</strong> column is what the navigation and the route guards offer; the server enforces the same split.</p>
+<table><thead><tr><th>Screen</th><th>Route</th><th>Role</th><th>What it does</th></tr></thead><tbody>
+<tr><td>Sign in</td><td><code>/login</code></td><td>public</td><td>The only page outside the main layout: there is no navigation worth offering someone who is not signed in.</td></tr>
+<tr><td>Home</td><td><code>/</code></td><td>both</td><td>One tile per use case the signed-in role can reach.</td></tr>
+<tr><td>Add instructor</td><td><code>/instructors/new</code></td><td>manager</td><td>UC1. Six fields in three labelled groups, the duplicate-name prompt, the generated ID and the welcome message.</td></tr>
+<tr><td>Instructors</td><td><code>/instructors</code></td><td>manager</td><td>Every instructor, newest first, with their preferred contact as a badge.</td></tr>
+<tr><td>Add customer</td><td><code>/customers/new</code></td><td>manager</td><td>UC4. The same form component as UC1, with the opening balance confirmed.</td></tr>
+<tr><td>Customers</td><td><code>/customers</code></td><td>manager</td><td>Adds a class-balance column, with a negative balance coloured rather than hidden.</td></tr>
+<tr><td>Add package</td><td><code>/packages/new</code></td><td>manager</td><td>UC3. The four class-count choices as one radio group, so &quot;unlimited&quot; is a first-class option.</td></tr>
+<tr><td>Packages</td><td><code>/packages</code></td><td>manager</td><td>Laid out to read like the studio&#x27;s printed price list.</td></tr>
+<tr><td>Add class</td><td><code>/classes/new</code></td><td>manager</td><td>UC2. Checks the slot as the form is filled in, and offers free slots as buttons when it is taken.</td></tr>
+<tr><td>Schedule</td><td><code>/classes</code></td><td>both</td><td>The timetable in the order it runs. An instructor sees their own classes, and no pay rates.</td></tr>
+<tr><td>Record sale</td><td><code>/sales/new</code></td><td>manager</td><td>UC5. Fills in the price and validity from the price list once a customer and package are chosen, and shows the balance before and after.</td></tr>
+<tr><td>Sales</td><td><code>/sales</code></td><td>manager</td><td>Every sale with its status, and the studio&#x27;s takings in the heading.</td></tr>
+<tr><td>Take attendance</td><td><code>/attendance/new</code></td><td>both</td><td>UC6. A searchable tick-list showing what each check-in will cost, the schedule warning, and the negative-balance prompt.</td></tr>
+<tr><td>Attendance</td><td><code>/attendance</code></td><td>both</td><td>Sheets newest first, each with who was there and what it did to their balance.</td></tr>
+<tr><td>Reports</td><td><code>/reports</code></td><td>manager</td><td>UC7&#x27;s four reports behind tabs, with a month picker for teacher payment.</td></tr>
+<tr><td>Accounts</td><td><code>/accounts</code></td><td>manager</td><td>Who can sign in, and the form to create a login for an instructor.</td></tr>
 </tbody></table>
-<p>Three deliberate choices are worth drawing out:</p>
-<p><strong>The form is one component, used twice.</strong> UC1 and UC4 collect the same six fields and ask the same duplicate-name question, so <code>PersonForm</code> is written once and configured by props. The two pages supply only the wording, the API functions and the link target. This is a UI decision as much as a code one: the two screens behave identically because they <em>are</em> the same screen, not because two copies were kept in step by hand.</p>
+<p>Choices worth drawing out:</p>
+<p><strong>The form is one component, used twice.</strong> UC1 and UC4 collect the same six fields and ask the same duplicate-name question, so <code>PersonForm</code> is written once and configured by props. The two pages supply only the wording, the API functions and the link target. The two screens behave identically because they <em>are</em> the same screen, not because two copies were kept in step by hand.</p>
 <p><strong>Errors appear beside the field they concern</strong>, not only in a summary at the top, and they clear as soon as the manager starts correcting that field. A message that stays put while its field is being fixed reads as broken.</p>
 <p><strong>The interface never looks idle while it is working.</strong> Buttons are disabled and relabelled through each stage (&quot;Checking name…&quot;, then &quot;Saving…&quot;), so a slow network produces a visibly busy screen rather than a dead one.</p>
+<p><strong>The attendance sheet answers before it is asked.</strong> Each name carries what the check-in will do to that person&#x27;s balance (<code>4 → 3</code>, or an &quot;unlimited&quot; badge), updated as names are ticked. The instructor finds out that someone has run out while they are still looking at the room, not after pressing Save.</p>
+<p><strong>Tabs for the reports, not four pages.</strong> The four reports answer one question between them, and a manager comparing revenue against what the teachers are owed should not be navigating backwards and forwards to do it. Each report is fetched when its tab is opened, so arriving at the screen runs one aggregation rather than four.</p>
+<h3 id="9-4-responsive-design-after-part-2">9.4 Responsive design after Part 2</h3>
+<p>Part 2 took the navigation from six entries to eleven, which on a 375px screen filled five rows before any content appeared. Below 900px the links are now behind a Menu button, with <code>aria-expanded</code> and <code>aria-controls</code> so the state is announced rather than merely visible, and the menu closes itself when the page changes so a tapped link is not hidden behind the list that was used to reach it. Above 900px the button disappears and the row returns; the markup is the same either way, and only CSS differs.</p>
+<p>The wider tables that Part 2 introduced (sales, attendance, the reports) sit in a horizontally scrolling wrapper rather than being shrunk or truncated, so a phone shows fewer columns at full legibility instead of all of them unreadably.</p>
 <h2 id="10-testing-and-verification">10. Testing and verification</h2>
-<p>No automated test suite is included in Part 1; verification was done by exercising the API directly and by driving the interface in a browser. Each case below was run and its result confirmed.</p>
-<h3 id="10-1-api">10.1 API</h3>
+<p>There is no automated test suite. Verification was done by exercising the API directly and by driving the interface in a browser, and every case below was run and its result confirmed. Section 12 lists the absence of automated tests as the project&#x27;s main limitation, and section 11 describes the CI job that does run on every push.</p>
+<h3 id="10-1-part-1-api-cases">10.1 Part 1 API cases</h3>
 <table><thead><tr><th>Case</th><th>Expected</th><th>Result</th></tr></thead><tbody>
 <tr><td>Create a valid instructor</td><td><code>201</code>, ID <code>I00001</code></td><td>Pass</td></tr>
 <tr><td>Submit with only a first name</td><td><code>400</code> listing each missing field</td><td>Pass</td></tr>
@@ -1083,7 +1623,7 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
 <tr><td>POST <code>unlimited: true</code> together with <code>numClasses: 10</code></td><td>Normalised to <code>null</code>; not stored both ways</td><td>Pass</td></tr>
 <tr><td>POST a negative price and invalid enums</td><td><code>400</code> naming all three fields</td><td>Pass</td></tr>
 </tbody></table>
-<h3 id="10-2-interface">10.2 Interface</h3>
+<h3 id="10-2-part-1-interface-cases">10.2 Part 1 interface cases</h3>
 <table><thead><tr><th>Case</th><th>Expected</th><th>Result</th></tr></thead><tbody>
 <tr><td>Submit the empty form</td><td>Seven field-level errors, no request sent</td><td>Pass</td></tr>
 <tr><td>Complete and save</td><td>Success panel, ID shown, welcome message shown, form cleared</td><td>Pass</td></tr>
@@ -1099,90 +1639,268 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
 <tr><td>Add an unlimited Special package through the form</td><td>Saved as <code>P00009</code>, success panel reads &quot;Unlimited&quot;</td><td>Pass</td></tr>
 <tr><td>Package list</td><td>Reads like the printed price list, senior rates included</td><td>Pass</td></tr>
 </tbody></table>
-<h3 id="10-3-the-defect-this-found">10.3 The defect this found</h3>
-<p>The ID-generation ordering described in decision 15 was found by test case 7 above and fixed before the interface was built. It is recorded here because a report that lists only passes is not a useful account of testing.</p>
-<h2 id="11-deployment">11. Deployment</h2>
+<h3 id="10-3-part-2-api-cases">10.3 Part 2 API cases</h3>
+<p><strong>Authentication and roles</strong></p>
+<table><thead><tr><th>Case</th><th>Expected</th><th>Result</th></tr></thead><tbody>
+<tr><td>Any protected endpoint with no token</td><td><code>401</code></td><td>Pass</td></tr>
+<tr><td>A token with its payload altered</td><td><code>401</code>, &quot;Invalid session&quot;</td><td>Pass</td></tr>
+<tr><td>Sign in with a wrong password</td><td><code>401</code>, the same generic message as an unknown user</td><td>Pass</td></tr>
+<tr><td>Sign in with correct credentials</td><td><code>200</code> with a token, and <code>lastLoginAt</code> updated</td><td>Pass</td></tr>
+<tr><td><code>GET /api/auth/me</code> with that token</td><td>The account, with no password field anywhere in the body</td><td>Pass</td></tr>
+<tr><td>An instructor token on <code>GET /api/packages</code></td><td><code>403</code>, &quot;This action is for the manager role&quot;</td><td>Pass</td></tr>
+<tr><td>An instructor token on <code>POST /api/customers</code></td><td><code>403</code></td><td>Pass</td></tr>
+<tr><td>An instructor token on <code>GET /api/customers</code></td><td><code>200</code>, because UC6 needs the list</td><td>Pass</td></tr>
+<tr><td>An instructor token on <code>GET /api/auth/users</code></td><td><code>403</code></td><td>Pass</td></tr>
+<tr><td>A second account for an instructor who already has one</td><td><code>409</code>, naming the existing username</td><td>Pass</td></tr>
+</tbody></table>
+<p><strong>UC2, Add a class</strong></p>
+<table><thead><tr><th>Case</th><th>Expected</th><th>Result</th></tr></thead><tbody>
+<tr><td>Schedule a class in a free slot</td><td><code>201</code>, ID <code>L00001</code>, confirmations to the instructor and the studio</td><td>Pass</td></tr>
+<tr><td>A second class overlapping it by 30 minutes</td><td><code>409</code> naming the clash, with four free slots offered</td><td>Pass</td></tr>
+<tr><td><code>check-conflict</code> on a free slot</td><td><code>conflict: false</code>, no suggestions</td><td>Pass</td></tr>
+<tr><td>A slot starting exactly when another ends</td><td>Accepted; touching is not overlapping</td><td>Pass</td></tr>
+<tr><td>An instructor ID that does not exist</td><td><code>400</code>, &quot;No instructor with that id&quot;</td><td>Pass</td></tr>
+<tr><td>A time of &quot;9am&quot; rather than &quot;09:00&quot;</td><td><code>400</code> naming the time field</td><td>Pass</td></tr>
+</tbody></table>
+<p><strong>UC5, Record a sale</strong></p>
+<table><thead><tr><th>Case</th><th>Expected</th><th>Result</th></tr></thead><tbody>
+<tr><td><code>quote</code> for a customer and package</td><td>Price, validity window and current balance</td><td>Pass</td></tr>
+<tr><td>Pay $100 for a $140 package</td><td><code>400</code>, &quot;10 Class Pass costs $140.00&quot;</td><td>Pass</td></tr>
+<tr><td>A payment dated last month</td><td><code>400</code>, &quot;Date of payment must be today&quot;</td><td>Pass</td></tr>
+<tr><td>A validity end that does not match the package&#x27;s period</td><td><code>400</code>, naming the date it should be</td><td>Pass</td></tr>
+<tr><td>A correct sale of a 10-class package</td><td><code>201</code>, balance 0 → 10</td><td>Pass</td></tr>
+<tr><td>A sale of an unlimited package</td><td><code>201</code>, balance unchanged, <code>classesAdded: 0</code></td><td>Pass</td></tr>
+<tr><td>The date-only strings the form actually sends</td><td><code>201</code> (after the fix in 10.5)</td><td>Pass</td></tr>
+</tbody></table>
+<p><strong>UC6, Record class attendance</strong></p>
+<table><thead><tr><th>Case</th><th>Expected</th><th>Result</th></tr></thead><tbody>
+<tr><td>Preview a sheet dated on a different weekday</td><td>The schedule warning, naming both the schedule and the sheet</td><td>Pass</td></tr>
+<tr><td>Preview for a customer with an active unlimited package</td><td>Marked covered, balance unchanged</td><td>Pass</td></tr>
+<tr><td>Preview for a General package holder against a Special class</td><td>Flagged &quot;No active Special package on file&quot;, not blocked</td><td>Pass</td></tr>
+<tr><td>Save a sheet</td><td><code>201</code>, <code>A00001</code>, each attendee messaged with their new balance</td><td>Pass</td></tr>
+<tr><td>An instructor filing a sheet for a class they do not lead</td><td><code>403</code></td><td>Pass</td></tr>
+<tr><td>A customer with a zero balance</td><td><code>409</code>, <code>requiresConfirmation</code>, naming them and the resulting balance</td><td>Pass</td></tr>
+<tr><td>The same request with <code>allowNegativeBalance</code></td><td><code>201</code>, balance −1, and the message says −1</td><td>Pass</td></tr>
+<tr><td>A sheet with no attendees</td><td><code>400</code></td><td>Pass</td></tr>
+</tbody></table>
+<p><strong>UC7, Reports</strong></p>
+<table><thead><tr><th>Case</th><th>Expected</th><th>Result</th></tr></thead><tbody>
+<tr><td>Package sales</td><td>Four packages, $630 total, ordered by revenue</td><td>Pass</td></tr>
+<tr><td>Instructors</td><td>Each instructor&#x27;s classes, with 3 classes held and 4 check-ins for I00001</td><td>Pass</td></tr>
+<tr><td>Customers</td><td>Four purchases labelled active, and the customer with the negative balance counted in the summary</td><td>Pass</td></tr>
+<tr><td>Teacher payment for October</td><td>3 classes held, 4 check-ins, $135 due, from a $45 pay rate</td><td>Pass</td></tr>
+<tr><td>Teacher payment for a month with no classes</td><td>Empty, with a &quot;no classes held&quot; message rather than an error</td><td>Pass</td></tr>
+<tr><td>Any report with an instructor token</td><td><code>403</code></td><td>Pass</td></tr>
+</tbody></table>
+<h3 id="10-4-part-2-interface-cases">10.4 Part 2 interface cases</h3>
+<table><thead><tr><th>Case</th><th>Expected</th><th>Result</th></tr></thead><tbody>
+<tr><td>Open any URL while signed out</td><td>Redirected to <code>/login</code>, and back to the requested page after signing in</td><td>Pass</td></tr>
+<tr><td>Sign in as a manager</td><td>Eleven navigation entries, seven home tiles, the username and role in the header</td><td>Pass</td></tr>
+<tr><td>Sign in as an instructor</td><td>Three navigation entries, one home tile, no pay-rate column on the schedule</td><td>Pass</td></tr>
+<tr><td>An instructor opening <code>/classes</code></td><td>Only the classes they lead</td><td>Pass</td></tr>
+<tr><td>Typing a taken slot into the class form</td><td>The warning and the free slots appear without pressing anything</td><td>Pass</td></tr>
+<tr><td>Clicking a suggested slot</td><td>The form moves to it and the warning clears</td><td>Pass</td></tr>
+<tr><td>Saving a class</td><td>Both confirmations shown, exactly as they would be sent</td><td>Pass</td></tr>
+<tr><td>Choosing a customer and package in the sale form</td><td>Price, dates and balance fill themselves in</td><td>Pass</td></tr>
+<tr><td>Saving a sale</td><td>New balance shown; &quot;1 class added&quot; singular, not &quot;1 classes&quot;</td><td>Pass (after a wording fix)</td></tr>
+<tr><td>Ticking a name on the attendance sheet</td><td>That person&#x27;s balance effect appears beside them</td><td>Pass</td></tr>
+<tr><td>A sheet dated on the wrong weekday</td><td>The schedule warning appears above the form</td><td>Pass</td></tr>
+<tr><td>Saving with someone out of classes</td><td>The prompt, with &quot;Check them in anyway&quot; and &quot;Go back&quot;</td><td>Pass</td></tr>
+<tr><td>Confirming it</td><td>Saved, and each attendee&#x27;s message shown with the real balance</td><td>Pass</td></tr>
+<tr><td>Switching between all four report tabs</td><td>Each loads, with no stale data in between (after the fix in 10.5)</td><td>Pass</td></tr>
+<tr><td>Viewport at 375px</td><td>The navigation collapses behind a Menu button; forms are one column; wide tables scroll</td><td>Pass</td></tr>
+<tr><td>Browser console across every screen</td><td>No errors or warnings</td><td>Pass</td></tr>
+</tbody></table>
+<h3 id="10-5-the-defects-this-found">10.5 The defects this found</h3>
+<p>A report that lists only passes is not a useful account of testing. Four real defects were found and fixed, three of them by testing rather than by reading the code.</p>
+<p><strong>1. A date-only string is parsed as UTC.</strong> The sale form sends <code>&quot;2026-10-15&quot;</code> from an <code>&lt;input type=&quot;date&quot;&gt;</code>, and JavaScript is specified to read a date-only string as <em>UTC midnight</em>. West of Greenwich that is the previous evening in local time, so a validity window starting today was rejected as starting in the past. The fix reads the parts out of a date-only string and rebuilds it as a local date; a full timestamp, which carries its own offset, is passed through untouched.</p>
+<p><strong>2. Adding days in milliseconds drifts across a daylight-saving change.</strong> A 30-day window added as <code>30 * 86400000</code> lands at 23:00 the evening before the intended date, because the November change makes one of those days 25 hours long. The form then showed a validity end one day short of what the server expected, and refused its own suggestion. The fix adds calendar days with <code>setDate</code>, which lets the Date object deal with the clock change.</p>
+<p>Both of these are worth recording because neither is a mistake in the use case or in the logic. They are the kind of defect that only appears when a real browser, a real timezone and a real calendar meet code that looked obviously correct, and both were found by driving the actual form rather than by testing the endpoint with hand-written timestamps.</p>
+<p><strong>3. The sale did not record the package&#x27;s class type.</strong> UC6&#x27;s entitlement check compared the class&#x27;s type against <code>sale.classType</code>, which did not exist, so every check-in was flagged &quot;No active package of this type&quot;. The snapshot gained the field, which is where it belonged anyway by decision 16.</p>
+<p><strong>4. The reports screen rendered one frame of the wrong data.</strong> State set inside a React effect does not apply until the render <em>after</em> the one that scheduled it, so for one frame a newly chosen tab rendered against the previous report&#x27;s rows. The four reports have four different shapes, so that frame read fields that were not there: React warned about missing keys, and <code>row.classes.length</code> would have thrown outright on a row from the sales report. The loaded report now carries the tab it belongs to, and the screen renders it only when the two agree. This one was found by reading the browser console rather than by looking at the screen, which is the argument for checking the console as a test case in its own right.</p>
+<h2 id="11-deployment-and-the-delivery-pipeline">11. Deployment and the delivery pipeline</h2>
 <p><strong>Target: Heroku</strong>, with MongoDB Atlas as the database. Chosen over zyLabs because Part 2 requires a GitHub repository, a Heroku deployment and a CI/CD pipeline regardless; building that pipeline once, for Part 1, avoids doing the work twice. The cost is an Eco dyno at roughly $5 per month.</p>
 <p><strong>How the production build works.</strong> <code>heroku-postbuild</code> runs the client build, producing <code>client/dist</code>. On start, <code>server.js</code> detects <code>NODE_ENV=production</code> and serves those static files alongside the <code>/api</code> routes, with any non-API <code>GET</code> falling back to <code>index.html</code> so that React Router handles page routes. Without that fallback, refreshing <code>/instructors</code> would return a 404.</p>
-<p><strong>Configuration and secrets.</strong> The application reads <code>PORT</code> and <code>MONGODB_URI</code> from the environment. Locally these come from <code>.env</code>, which is git-ignored; <code>.env.example</code> documents the names with no real values. In production Heroku supplies <code>PORT</code> and the Atlas connection string is set as a Heroku config var. <strong>No credential is committed at any point.</strong></p>
+<p><strong>Configuration and secrets.</strong> The application reads <code>PORT</code>, <code>MONGODB_URI</code> and <code>JWT_SECRET</code> from the environment. Locally these come from <code>.env</code>, which is git-ignored; <code>.env.example</code> documents the names with no real values. In production Heroku supplies <code>PORT</code>, and the Atlas connection string and the token secret are Heroku config vars. <strong>No credential is committed at any point.</strong></p>
+<p><code>JWT_SECRET</code> is treated as mandatory in production: with <code>NODE_ENV=production</code> and no secret, the server throws at startup rather than falling back to something guessable, because a predictable signing key would let anyone mint their own manager token. In development a random secret is generated per process, which keeps local setup to one step and makes the weaker case obvious, since restarting signs everyone out.</p>
+<p><strong>Passwords are not stored at all.</strong> Only a bcrypt hash is, and the hash is excluded from every query result except the one the sign-in code runs. The first manager account is created by a one-off command that reads the password from the environment:</p>
+<pre><code>heroku run -a &lt;app&gt; MANAGER_USERNAME=studio MANAGER_PASSWORD=&#x27;...&#x27; \
+  npm run create:manager
+</code></pre>
 <h3 id="11-1-deployment-status-live">11.1 Deployment status: live</h3>
 <p>The application is deployed and serving requests:</p>
 <table><thead><tr><th>Component</th><th>Status</th></tr></thead><tbody>
 <tr><td>Application</td><td><strong>https://yogitrack-zb-9cc3ff17df1c.herokuapp.com</strong></td></tr>
-<tr><td>Repository</td><td>https://github.com/ZB56/yogitrack (11+ commits, private)</td></tr>
+<tr><td>Repository</td><td>https://github.com/ZB56/yogitrack</td></tr>
 <tr><td>Database</td><td>MongoDB Atlas M0 cluster, database <code>yogitrack</code></td></tr>
 <tr><td>Continuous integration</td><td>GitHub Actions, passing</td></tr>
 <tr><td>Dyno</td><td>Basic, one web process</td></tr>
 </tbody></table>
-<p>A production smoke test against the live URL passed all nine checks: the health endpoint, creating an instructor, per-field validation, the duplicate <code>409</code>, creating a customer, creating a package, rejection of an invalid class count, a React deep link served correctly, and an unknown <code>/api</code> path still returning JSON rather than the single-page app.</p>
-<h3 id="11-2-two-failures-worth-recording">11.2 Two failures worth recording</h3>
+<p>A production smoke test against the live URL passed all nine checks at the Part 1 release: the health endpoint, creating an instructor, per-field validation, the duplicate <code>409</code>, creating a customer, creating a package, rejection of an invalid class count, a React deep link served correctly, and an unknown <code>/api</code> path still returning JSON rather than the single-page app.</p>
+<p>The Part 2 release adds one manual step that cannot be automated and should not be: creating the first manager account on the deployed application, with the password passed on the command line so that it is never written to a file in the repository or to a config var.</p>
+<h3 id="11-2-continuous-integration">11.2 Continuous integration</h3>
+<p><code>.github/workflows/ci.yml</code> runs on every push and every pull request to <code>main</code>. Heroku is configured to deploy automatically from <code>main</code> and to wait for that check, so a commit that fails CI never reaches the dyno.</p>
+<p>The job installs both halves of the project, lints and builds the React app, then boots the server against a throwaway MongoDB service container and exercises it over HTTP. What it checks, in the order it checks them:</p>
+<ul>
+<li>&lt;strong&gt;1.&lt;/strong&gt; the health endpoint answers, polled rather than slept on
+</li>
+<li>&lt;strong&gt;2.&lt;/strong&gt; an anonymous request to a protected endpoint is refused with <code>401</code>
+</li>
+<li>&lt;strong&gt;3.&lt;/strong&gt; a manager account can be created and signed in to
+</li>
+<li>&lt;strong&gt;4.&lt;/strong&gt; that token opens every resource endpoint and all four reports
+</li>
+<li>&lt;strong&gt;5.&lt;/strong&gt; an invalid record is rejected with <code>400</code>
+</li>
+<li>&lt;strong&gt;6.&lt;/strong&gt; a wrong password is refused with <code>401</code>
+</li></ul>
+<p>The last two matter more than the four before them. A smoke test that only checks happy paths passes just as happily when validation and authorisation have been switched off.</p>
+<p>The account and the signing secret the job uses exist only for that run, in a database that is destroyed with the container. The script runs under <code>set -euo pipefail</code> with a trap that stops the server, so a failing check cannot be masked by a later command succeeding, which is a failure mode the Part 1 version of this file had.</p>
+<p><strong>Part 2 broke this workflow, which is the point of having it.</strong> The old job curled <code>/api/instructors</code> anonymously; once authentication was added that answers <code>401</code>, so the job would have gone red on the first push. The pipeline caught the consequence of a deliberate change at exactly the moment it was supposed to.</p>
+<h3 id="11-3-two-failures-worth-recording">11.3 Two failures worth recording</h3>
 <p>Neither appeared in local testing, and both are the kind of thing that only the real platform reveals.</p>
 <p><strong>The first deploy failed to build:</strong> <code>sh: 1: vite: not found</code>. Heroku sets <code>NODE_ENV=production</code> for the build, and npm omits <code>devDependencies</code> when it is set. Vite is a devDependency, correctly so, since it is a build tool and not a runtime dependency. The result was that the client had no bundler.</p>
 <p>The fix was <code>npm ci --prefix client --include=dev</code> rather than moving Vite into <code>dependencies</code>, which would have misfiled a build tool to work around a flag. The failure was then reproduced locally with <code>NODE_ENV=production npm run build</code> against a cleared <code>node_modules</code>, and the fix confirmed under the same conditions. The earlier local production test had missed it because <code>NODE_ENV</code> was not set during the <em>install</em> step, only the run step.</p>
 <p><strong>The second deploy built but crashed on boot:</strong> <code>Failed to start server: Authentication failed.</code> The Atlas connection string was well formed but the credentials were rejected, and resetting the database user&#x27;s password fixed it.</p>
 <p>This one is worth noting because the application behaved exactly as designed. <code>server.js</code> connects to the database <em>before</em> it starts listening, and exits with a clear message if that fails. The alternative, listening first and discovering the problem on the first request, would have produced a running app that returned confusing errors on every endpoint. The crash was the correct outcome, and the log line named the cause precisely.</p>
 <p>A related detail: the first connection string was missing its database name (<code>...mongodb.net/?...</code> rather than <code>...mongodb.net/yogitrack?...</code>). Mongoose would have silently connected to a database called <code>test</code>, and the application would have worked while writing to the wrong place.</p>
-<h2 id="12-known-limitations-and-the-part-2-plan">12. Known limitations and the Part 2 plan</h2>
-<h3 id="12-1-honest-limitations-of-part-1">12.1 Honest limitations of Part 1</h3>
+<h2 id="12-known-limitations-and-what-would-come-next">12. Known limitations and what would come next</h2>
+<h3 id="12-1-honest-limitations">12.1 Honest limitations</h3>
 <ul>
-<li>&lt;strong&gt;1.&lt;/strong&gt; <strong>Messages are not delivered.</strong> They are generated, displayed and logged.
- The stub reports <code>delivered: false</code>.
+<li>&lt;strong&gt;1.&lt;/strong&gt; <strong>There are no automated tests.</strong> This is the largest gap in the project.
+ Verification is manual and documented in section 10, and the CI job in
+ section 11.2 is a smoke test rather than a test suite: it proves the
+ application boots and refuses the wrong people, not that UC5&#x27;s validation
+ is right. Everything in section 10 would be better as code that runs on
+ every push, and the four defects in 10.5 are exactly the kind that a
+ regression suite exists to stop coming back.
 </li>
-<li>&lt;strong&gt;2.&lt;/strong&gt; <strong>Records cannot be edited or deleted</strong> once created. Deliberate; see
- decision 9.
+<li>&lt;strong&gt;2.&lt;/strong&gt; <strong>Messages are still not delivered.</strong> They are generated, displayed and
+ logged, and the stub reports <code>delivered: false</code>. Real delivery needs a paid
+ provider account; the interface behind which it would go has not changed
+ since Part 1 (decision 3).
 </li>
-<li>&lt;strong&gt;3.&lt;/strong&gt; <strong>There is no authentication.</strong> Anyone who can reach the application can use
- it. Deferred with decision 12, and it must be resolved before UC6, the first
- instructor-facing use case.
+<li>&lt;strong&gt;3.&lt;/strong&gt; <strong>Records cannot be edited or deleted.</strong> Deliberate, and the reasoning is
+ now stronger than it was in Part 1, because the references that a delete
+ would have to respect actually exist (decision 9). The <code>active</code> flag is on
+ every schema, so deactivation is a small change rather than a migration.
 </li>
-<li>&lt;strong&gt;4.&lt;/strong&gt; <strong>No automated tests.</strong> Verification was manual and is documented in
- section 10.
+<li>&lt;strong&gt;4.&lt;/strong&gt; <strong>Entitlement by class type is reported, not enforced.</strong> A customer with
+ only a General package can be checked in to a Special class, with a warning
+ (decision 18). The specification&#x27;s one-balance-per-customer model cannot
+ support the rule it describes elsewhere; the fix is per-package balances,
+ which changes the specified data model.
 </li>
-<li>&lt;strong&gt;5.&lt;/strong&gt; <strong>Address is a single free-text field.</strong> If the UC7 reports ever need to
- group customers geographically, this needs revisiting first (decision 14).
+<li>&lt;strong&gt;5.&lt;/strong&gt; <strong>The token lives in <code>localStorage</code>.</strong> A cross-site scripting bug could
+ read it. The application has no third-party scripts and renders no
+ user-supplied HTML, which are the usual ways such a bug arrives, and the
+ token expires in eight hours; an httpOnly cookie would be safer still, at
+ the cost of CSRF protection and cookie configuration.
+</li>
+<li>&lt;strong&gt;6.&lt;/strong&gt; <strong>A token cannot be revoked before it expires.</strong> Deactivating an account
+ stops the next sign-in and is re-checked on <code>/api/auth/me</code>, but a token
+ already issued stays valid for its remaining lifetime. That is the trade
+ accepted in decision 12, and the eight-hour lifetime is what bounds it.
+</li>
+<li>&lt;strong&gt;7.&lt;/strong&gt; <strong>The class schedule has no concept of a date range or a holiday.</strong> A class
+ is a weekly slot that runs forever, because that is what UC2 specifies.
+ Cancelling one week&#x27;s class is not expressible; the instructor simply does
+ not file a sheet for it, which the teacher payment report handles correctly
+ but which is not the same as recording the cancellation.
+</li>
+<li>&lt;strong&gt;8.&lt;/strong&gt; <strong>Address is a single free-text field</strong> (decision 14). If a report ever
+ needs to group customers geographically, this needs revisiting first.
+</li>
+<li>&lt;strong&gt;9.&lt;/strong&gt; <strong>No pagination anywhere.</strong> Every list endpoint returns everything, and the
+ attendance list is capped at 100 sheets. At studio scale that is fine, and
+ the indexes are in place; at ten years of attendance it would not be.
 </li></ul>
-<h3 id="12-2-decisions-still-open">12.2 Decisions still open</h3>
-<table><thead><tr><th>#</th><th>Question</th><th>Needed by</th></tr></thead><tbody>
-<tr><td>5</td><td>How long is a class? Required for UC2&#x27;s conflict check; the specification never says.</td><td>UC2</td></tr>
-<tr><td>10</td><td>Are the diagram-only use cases (Publish/View Schedule, View Attendance) in scope?</td><td>Part 2 scoping</td></tr>
-<tr><td>11</td><td>Which report list governs: the diagram&#x27;s five, or written UC7&#x27;s four? Worth asking the instructor.</td><td>UC7</td></tr>
-<tr><td>12</td><td>How are Manager and Instructor distinguished: a role selector, or real login?</td><td>UC6</td></tr>
+<h3 id="12-2-what-a-third-increment-would-do-in-order">12.2 What a third increment would do, in order</h3>
+<ul>
+<li>&lt;strong&gt;1.&lt;/strong&gt; <strong>An automated test suite</strong>, starting with the API cases in section 10:
+ the three UC5 validations, UC6&#x27;s entitlement and override, and the four
+ reports against seeded data. These are integration tests against a real
+ MongoDB, because the rules worth testing are mostly rules about documents.
+</li>
+<li>&lt;strong&gt;2.&lt;/strong&gt; <strong>Modify and deactivate</strong>, with the referential rules written down first:
+ an instructor who leads classes cannot be deleted, a package with sales
+ cannot be deleted, and the UI says why instead of failing.
+</li>
+<li>&lt;strong&gt;3.&lt;/strong&gt; <strong>Per-package balances</strong>, which would let UC6 enforce class-type
+ entitlement rather than warn about it, and would make the customer report
+ able to say which package a check-in actually drew on.
+</li>
+<li>&lt;strong&gt;4.&lt;/strong&gt; <strong>Real message delivery</strong> behind the existing interface, once the studio
+ has a provider account.
+</li>
+<li>&lt;strong&gt;5.&lt;/strong&gt; <strong>Pagination and a date filter</strong> on the attendance and sales lists, which
+ is the first thing that would hurt as the collections grow.
+</li></ul>
+<h3 id="12-3-what-the-course-rubric-asked-for-and-where-it-is">12.3 What the course rubric asked for, and where it is</h3>
+<table><thead><tr><th>Rubric element</th><th>Where to look</th></tr></thead><tbody>
+<tr><td>Use cases</td><td>All seven implemented: sections 4.1–4.7. The two actors are real, not labels: section 4.8</td></tr>
+<tr><td>Tech-stack use</td><td>Section 7, and specifically the aggregation pipelines (7.1, 6.10), Express middleware as the authorisation layer (7.2), and React context and guards (7.3)</td></tr>
+<tr><td>UI design</td><td>Section 9, including the role-aware navigation (9.1), the fourteen screens (9.3) and the responsive work Part 2 forced (9.4)</td></tr>
+<tr><td>Code / GitHub</td><td>Section 8 for the structure and the commenting standard; section 11.2 for what CI checks on every push</td></tr>
+<tr><td>Project report</td><td>This document, with the decision record in <code>07-design-decisions.md</code> behind it</td></tr>
 </tbody></table>
-<h3 id="12-3-part-2-plan">12.3 Part 2 plan</h3>
-<ul>
-<li>&lt;strong&gt;1.&lt;/strong&gt; UC2 Add Class: schedule-conflict detection and alternative suggestions.
-</li>
-<li>&lt;strong&gt;2.&lt;/strong&gt; UC5 Record Sale: validation against the package rate, balance update.
-</li>
-<li>&lt;strong&gt;3.&lt;/strong&gt; UC6 Record Attendance: instructor view, schedule-mismatch warning,
- deliberate negative-balance override, check-in messages.
-</li>
-<li>&lt;strong&gt;4.&lt;/strong&gt; UC7 Reports: MongoDB aggregation pipelines.
-</li>
-<li>&lt;strong&gt;5.&lt;/strong&gt; Modify and delete for the Part 1 entities, with deactivation rather than
- deletion where records are referenced.
-</li>
-<li>&lt;strong&gt;6.&lt;/strong&gt; Real message delivery behind the existing messaging interface.
-</li>
-<li>&lt;strong&gt;7.&lt;/strong&gt; CI/CD pipeline and Atlas/Heroku deployment hardening.
-</li></ul>
 <h2 id="appendix-a-api-reference">Appendix A: API reference</h2>
-<p>All endpoints are under <code>/api</code> so that they can never collide with a React page route.</p>
-<table><thead><tr><th>Method</th><th>Path</th><th>Purpose</th><th>Success</th><th>Errors</th></tr></thead><tbody>
-<tr><td><code>GET</code></td><td><code>/api/health</code></td><td>Liveness check</td><td><code>200</code></td><td>None</td></tr>
-<tr><td><code>GET</code></td><td><code>/api/instructors</code></td><td>List all, newest first</td><td><code>200</code></td><td>None</td></tr>
-<tr><td><code>GET</code></td><td><code>/api/instructors/check-name?firstName=&amp;lastName=</code></td><td>Duplicate check (UC1 step 2)</td><td><code>200</code> <code>{exists, count, matches}</code></td><td><code>400</code> if a name is missing</td></tr>
-<tr><td><code>GET</code></td><td><code>/api/instructors/:instructorId</code></td><td>One instructor by readable ID</td><td><code>200</code></td><td><code>404</code></td></tr>
-<tr><td><code>POST</code></td><td><code>/api/instructors</code></td><td>Create (UC1)</td><td><code>201</code> <code>{instructor, notification}</code></td><td><code>400</code> per-field; <code>409</code> <code>requiresConfirmation</code></td></tr>
-<tr><td><code>GET</code></td><td><code>/api/customers</code></td><td>List all, newest first</td><td><code>200</code></td><td>None</td></tr>
-<tr><td><code>GET</code></td><td><code>/api/customers/check-name?firstName=&amp;lastName=</code></td><td>Duplicate check (UC4 step 2)</td><td><code>200</code> <code>{exists, count, matches}</code></td><td><code>400</code> if a name is missing</td></tr>
-<tr><td><code>GET</code></td><td><code>/api/customers/:customerId</code></td><td>One customer by readable ID</td><td><code>200</code></td><td><code>404</code></td></tr>
-<tr><td><code>POST</code></td><td><code>/api/customers</code></td><td>Create (UC4)</td><td><code>201</code> <code>{customer, notification}</code></td><td><code>400</code> per-field; <code>409</code> <code>requiresConfirmation</code></td></tr>
-<tr><td><code>GET</code></td><td><code>/api/packages</code></td><td>List all, newest first</td><td><code>200</code></td><td>None</td></tr>
-<tr><td><code>GET</code></td><td><code>/api/packages/:packageId</code></td><td>One package by readable ID</td><td><code>200</code></td><td><code>404</code></td></tr>
-<tr><td><code>POST</code></td><td><code>/api/packages</code></td><td>Create (UC3)</td><td><code>201</code> <code>{package}</code></td><td><code>400</code> per-field</td></tr>
+<p>All endpoints are under <code>/api</code> so that they can never collide with a React page route. Every one except <code>/api/health</code> and <code>/api/auth/login</code> requires <code>Authorization: Bearer &lt;token&gt;</code>; the <strong>Role</strong> column says who may call it.</p>
+<h3 id="authentication">Authentication</h3>
+<table><thead><tr><th>Method</th><th>Path</th><th>Role</th><th>Purpose</th><th>Success</th><th>Errors</th></tr></thead><tbody>
+<tr><td><code>GET</code></td><td><code>/api/health</code></td><td>public</td><td>Liveness check</td><td><code>200</code></td><td>None</td></tr>
+<tr><td><code>POST</code></td><td><code>/api/auth/login</code></td><td>public</td><td>Sign in</td><td><code>200</code> <code>{token, user}</code></td><td><code>400</code> missing; <code>401</code> one generic message for every failure</td></tr>
+<tr><td><code>GET</code></td><td><code>/api/auth/me</code></td><td>any</td><td>Who the token belongs to</td><td><code>200</code> <code>{user}</code></td><td><code>401</code></td></tr>
+<tr><td><code>GET</code></td><td><code>/api/auth/users</code></td><td>manager</td><td>List accounts</td><td><code>200</code></td><td><code>403</code></td></tr>
+<tr><td><code>POST</code></td><td><code>/api/auth/users</code></td><td>manager</td><td>Create an account</td><td><code>201</code> <code>{user}</code></td><td><code>400</code> per-field; <code>409</code> username taken or instructor already linked</td></tr>
 </tbody></table>
-<p><strong>The <code>409</code> contract.</strong> A <code>409</code> from either <code>POST</code> endpoint carrying <code>requiresConfirmation: true</code> does not mean the data is wrong. It means an instructor of that name already exists and the manager must confirm. Re-send the identical body with <code>confirmDuplicate: true</code> to proceed.</p>
+<h3 id="part-1-resources">Part 1 resources</h3>
+<table><thead><tr><th>Method</th><th>Path</th><th>Role</th><th>Purpose</th><th>Success</th><th>Errors</th></tr></thead><tbody>
+<tr><td><code>GET</code></td><td><code>/api/instructors</code></td><td>manager</td><td>List all, newest first</td><td><code>200</code></td><td><code>403</code></td></tr>
+<tr><td><code>GET</code></td><td><code>/api/instructors/check-name?firstName=&amp;lastName=</code></td><td>manager</td><td>Duplicate check (UC1 step 2)</td><td><code>200</code> <code>{exists, count, matches}</code></td><td><code>400</code> if a name is missing</td></tr>
+<tr><td><code>GET</code></td><td><code>/api/instructors/:instructorId</code></td><td>manager</td><td>One instructor by readable ID</td><td><code>200</code></td><td><code>404</code></td></tr>
+<tr><td><code>POST</code></td><td><code>/api/instructors</code></td><td>manager</td><td>Create (UC1)</td><td><code>201</code> <code>{instructor, notification}</code></td><td><code>400</code> per-field; <code>409</code> <code>requiresConfirmation</code></td></tr>
+<tr><td><code>GET</code></td><td><code>/api/customers</code></td><td>manager, instructor</td><td>List all, newest first</td><td><code>200</code></td><td><code>401</code></td></tr>
+<tr><td><code>GET</code></td><td><code>/api/customers/check-name?firstName=&amp;lastName=</code></td><td>manager</td><td>Duplicate check (UC4 step 2)</td><td><code>200</code> <code>{exists, count, matches}</code></td><td><code>400</code> if a name is missing</td></tr>
+<tr><td><code>GET</code></td><td><code>/api/customers/:customerId</code></td><td>manager, instructor</td><td>One customer by readable ID</td><td><code>200</code></td><td><code>404</code></td></tr>
+<tr><td><code>POST</code></td><td><code>/api/customers</code></td><td>manager</td><td>Create (UC4)</td><td><code>201</code> <code>{customer, notification}</code></td><td><code>400</code> per-field; <code>409</code> <code>requiresConfirmation</code></td></tr>
+<tr><td><code>GET</code></td><td><code>/api/packages</code></td><td>manager</td><td>List all, newest first</td><td><code>200</code></td><td><code>403</code></td></tr>
+<tr><td><code>GET</code></td><td><code>/api/packages/:packageId</code></td><td>manager</td><td>One package by readable ID</td><td><code>200</code></td><td><code>404</code></td></tr>
+<tr><td><code>POST</code></td><td><code>/api/packages</code></td><td>manager</td><td>Create (UC3)</td><td><code>201</code> <code>{package}</code></td><td><code>400</code> per-field</td></tr>
+</tbody></table>
+<h3 id="part-2-resources">Part 2 resources</h3>
+<table><thead><tr><th>Method</th><th>Path</th><th>Role</th><th>Purpose</th><th>Success</th><th>Errors</th></tr></thead><tbody>
+<tr><td><code>GET</code></td><td><code>/api/classes</code></td><td>manager, instructor</td><td>The schedule, ordered as the week runs; an instructor gets their own classes</td><td><code>200</code></td><td><code>401</code></td></tr>
+<tr><td><code>GET</code></td><td><code>/api/classes/check-conflict?day=&amp;time=&amp;durationMinutes=</code></td><td>manager</td><td>Is the slot free? (UC2 steps 2–3)</td><td><code>200</code> <code>{conflict, clashesWith, suggestions}</code></td><td><code>400</code> on a malformed slot</td></tr>
+<tr><td><code>GET</code></td><td><code>/api/classes/:classId</code></td><td>manager, instructor</td><td>One class</td><td><code>200</code></td><td><code>403</code> for another instructor&#x27;s class; <code>404</code></td></tr>
+<tr><td><code>POST</code></td><td><code>/api/classes</code></td><td>manager</td><td>Schedule a class (UC2)</td><td><code>201</code> <code>{class, instructor, notifications}</code></td><td><code>400</code> per-field or unknown instructor; <code>409</code> <code>{conflict, clashesWith, suggestions}</code></td></tr>
+<tr><td><code>GET</code></td><td><code>/api/sales</code></td><td>manager</td><td>Every sale, or one customer&#x27;s with <code>?customerId=</code></td><td><code>200</code></td><td><code>403</code></td></tr>
+<tr><td><code>GET</code></td><td><code>/api/sales/quote?customerId=&amp;packageId=</code></td><td>manager</td><td>What this sale should look like (UC5 step 2)</td><td><code>200</code> <code>{amountDue, validFrom, validTo, customer, package}</code></td><td><code>404</code> on an unknown customer or package</td></tr>
+<tr><td><code>POST</code></td><td><code>/api/sales</code></td><td>manager</td><td>Record a sale (UC5)</td><td><code>201</code> <code>{sale, customer, classesAdded}</code></td><td><code>400</code> per-field, including the three UC5 step 4 rules</td></tr>
+<tr><td><code>GET</code></td><td><code>/api/attendance</code></td><td>manager, instructor</td><td>Sheets, newest first, <code>?classId=</code> to narrow; an instructor gets their own</td><td><code>200</code></td><td><code>401</code></td></tr>
+<tr><td><code>POST</code></td><td><code>/api/attendance/preview</code></td><td>manager, instructor</td><td>What the sheet would do (UC6 steps 5 and 8)</td><td><code>200</code> <code>{attendees, insufficient, scheduleWarning}</code></td><td><code>400</code>; <code>403</code> for another instructor&#x27;s class</td></tr>
+<tr><td><code>POST</code></td><td><code>/api/attendance</code></td><td>manager, instructor</td><td>Save the sheet (UC6 steps 7–10)</td><td><code>201</code> <code>{attendance, notifications, scheduleWarning}</code></td><td><code>400</code>; <code>403</code>; <code>409</code> <code>requiresConfirmation</code></td></tr>
+<tr><td><code>GET</code></td><td><code>/api/reports/package-sales</code></td><td>manager</td><td>What sold, and what it brought in</td><td><code>200</code> <code>{rows, totals}</code></td><td><code>403</code></td></tr>
+<tr><td><code>GET</code></td><td><code>/api/reports/instructors</code></td><td>manager</td><td>Classes led, classes held, check-ins</td><td><code>200</code> <code>{rows}</code></td><td><code>403</code></td></tr>
+<tr><td><code>GET</code></td><td><code>/api/reports/customers</code></td><td>manager</td><td>Packages per customer, labelled</td><td><code>200</code> <code>{rows, summary}</code></td><td><code>403</code></td></tr>
+<tr><td><code>GET</code></td><td><code>/api/reports/teacher-payments?month=YYYY-MM</code></td><td>manager</td><td>What each instructor is owed</td><td><code>200</code> <code>{rows, totals, monthLabel}</code></td><td><code>400</code> on a malformed month; <code>403</code></td></tr>
+</tbody></table>
+<h3 id="the-conventions-behind-the-status-codes">The conventions behind the status codes</h3>
+<p><strong><code>409</code> is used for two different things, and the body says which.</strong></p>
+<ul>
+<li><em>A question.</em> <code>POST /api/instructors</code>, <code>POST /api/customers</code> and
+ <code>POST /api/attendance</code> answer <code>409</code> with <code>requiresConfirmation: true</code> when
+ something needs a human decision: a person of that name already exists
+ (UC1/UC4 step 3), or an attendee has no classes left (UC6 step 8). Re-send
+ the identical body with <code>confirmDuplicate</code> or <code>allowNegativeBalance</code> to
+ proceed. The data is not wrong; it needs confirming.
+</li>
+<li><em>A refusal with a way forward.</em> <code>POST /api/classes</code> answers <code>409</code> with
+ <code>suggestions</code> and no override, because two classes cannot share one room at
+ one time. The alternatives are the way forward.
+</li></ul>
+<p><strong><code>401</code> versus <code>403</code>.</strong> <code>401</code> means &quot;I do not know who you are&quot;: the client discards the token and sends the user to sign in. <code>403</code> means &quot;I know who you are, and no&quot;: the client shows the message. The React client treats every <code>401</code> that way except the one from the login call itself, because a wrong password also answers <code>401</code> and must not sign out the manager who mistyped.</p>
+<p><strong><code>400</code> carries <code>fields</code></strong>, a map from field name to a sentence a studio manager can act on, which the form renders beside the offending input.</p>
 <h2 id="appendix-b-running-the-project">Appendix B: running the project</h2>
 <h3 id="prerequisites">Prerequisites</h3>
 <ul>
@@ -1194,19 +1912,35 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
 <pre><code>cp .env.example .env     # .env is git-ignored; the defaults suit local MongoDB
 npm install
 </code></pre>
+<h3 id="create-the-first-manager-account">Create the first manager account</h3>
+<p>Every other account is created from inside the application, so this one comes from a script. The password is read from the environment and only its bcrypt hash is stored; running it again with the same username resets that password.</p>
+<pre><code>MANAGER_USERNAME=studio MANAGER_PASSWORD=&#x27;choose-a-long-one&#x27; npm run create:manager
+</code></pre>
 <h3 id="load-the-studio-s-price-list-optional">Load the studio&#x27;s price list (optional)</h3>
 <pre><code>npm run seed:packages    # inserts the seven packages from Fig. 2
 </code></pre>
 <h3 id="run">Run</h3>
 <pre><code>npm run dev:all          # Express on :5001 and the React dev server on :5173
 </code></pre>
-<p>Then open &lt;http://localhost:5173&gt;. Check the API alone with:</p>
+<p>Then open &lt;http://localhost:5173&gt; and sign in. Check the API alone with:</p>
 <pre><code>curl localhost:5001/api/health
+</code></pre>
+<p>Any other endpoint needs a token:</p>
+<pre><code>TOKEN=$(curl -s -X POST localhost:5001/api/auth/login \
+  -H &#x27;Content-Type: application/json&#x27; \
+  -d &#x27;{&quot;username&quot;:&quot;studio&quot;,&quot;password&quot;:&quot;...&quot;}&#x27; | node -pe &#x27;JSON.parse(require(&quot;fs&quot;).readFileSync(0)).token&#x27;)
+
+curl localhost:5001/api/instructors -H &quot;Authorization: Bearer $TOKEN&quot;
 </code></pre>
 <h3 id="production-build">Production build</h3>
 <pre><code>npm run build            # compiles the React app into client/dist
-NODE_ENV=production npm start
+NODE_ENV=production JWT_SECRET=local-check npm start
 </code></pre>
+<p><code>JWT_SECRET</code> is required when <code>NODE_ENV=production</code>: the server refuses to start without it rather than signing tokens with something guessable.</p>
+<h3 id="rebuilding-this-report">Rebuilding this report</h3>
+<pre><code>python3 tools/build-report.py    # regenerates docs/project-report.html
+</code></pre>
+<p>The HTML is self-contained, with every diagram inlined, and carries a print stylesheet so it can be saved as a PDF from a browser.</p>
 </div>
 </body>
 </html>
