@@ -31,12 +31,14 @@ const NAV_ITEMS = [
   { to: '/customers', label: 'Customers', roles: ['manager'] },
   { to: '/packages/new', label: 'Add Package', roles: ['manager'] },
   { to: '/packages', label: 'Packages', roles: ['manager'] },
+  { to: '/classes/new', label: 'Add Class', roles: ['manager'] },
+  { to: '/classes', label: 'Schedule', roles: ['manager', 'instructor'] },
   { to: '/accounts', label: 'Accounts', roles: ['manager'] },
 ];
 
 // Paths that are a prefix of another nav path need `end`, or /instructors
 // would also highlight while /instructors/new is open.
-const EXACT_MATCH_PATHS = ['/instructors', '/customers', '/packages'];
+const EXACT_MATCH_PATHS = ['/instructors', '/customers', '/packages', '/classes'];
 
 export default function Layout() {
   const { user, signOut } = useAuth();

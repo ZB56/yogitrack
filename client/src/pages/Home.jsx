@@ -32,6 +32,13 @@ const USE_CASES = [
     roles: ['manager'],
   },
   {
+    uc: 'UC2',
+    title: 'Add a class',
+    desc: 'Schedule a weekly class and check the slot is free.',
+    to: '/classes/new',
+    roles: ['manager'],
+  },
+  {
     uc: 'UC3',
     title: 'Add a package',
     desc: 'Define a class package, its validity and its price.',

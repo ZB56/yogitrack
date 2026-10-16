@@ -46,6 +46,38 @@ export async function sendMessage(recipient, text) {
 }
 
 /**
+ * Send a message to the studio itself.
+ *
+ * UC2 step 6 requires a confirmation "to the manager and to the instructor".
+ * The instructor is a person on file with a preferred contact method; the
+ * manager is whoever is signed in, and a login account carries no phone
+ * number or address. Rather than invent contact details for them, the
+ * studio's own address is used, which is also what a real studio would do:
+ * the schedule confirmation belongs in the office inbox, not in one
+ * employee's personal messages.
+ *
+ * @param {string} text - the message body
+ * @param {string} [username] - who triggered it, for the log
+ * @returns {Promise<object>} a record of what was sent
+ */
+export async function sendStudioMessage(text, username = 'manager') {
+  // Configurable so a real address can be set without touching the code.
+  const address = process.env.STUDIO_EMAIL || 'studio@yogahom.example';
+
+  const record = {
+    channel: 'email',
+    address,
+    text,
+    sentAt: new Date(),
+    delivered: false, // still a stub; see the note at the top of this file
+  };
+
+  console.log(`[messaging] studio (${username}) -> ${address}: ${text}`);
+
+  return record;
+}
+
+/**
  * Build the welcome message required by UC1 step 7 and UC4 step 7.
  *
  * @param {string} firstName
@@ -58,5 +90,22 @@ export function welcomeMessage(firstName, id, role) {
     `Welcome to Yoga H'om, ${firstName}! ` +
     `You have been registered as ${role === 'instructor' ? 'an instructor' : 'a customer'}. ` +
     `Your ${role} id is ${id}.`
+  );
+}
+
+/**
+ * Build the confirmation required by UC2 step 6: a new class has been
+ * scheduled. The same text goes to the instructor and to the studio, so it
+ * names both the slot and the instructor rather than saying "your class".
+ *
+ * @param {object} classDoc - the saved class
+ * @param {string} instructorName - the instructor's full name
+ * @returns {string}
+ */
+export function classScheduledMessage(classDoc, instructorName) {
+  return (
+    `Yoga H'om schedule update: ${classDoc.classType} class ${classDoc.classId} ` +
+    `is scheduled for ${classDoc.day} at ${classDoc.time} ` +
+    `(${classDoc.durationMinutes} minutes), led by ${instructorName}.`
   );
 }

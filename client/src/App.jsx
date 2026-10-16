@@ -30,6 +30,8 @@ import AddCustomer from './pages/AddCustomer.jsx';
 import CustomerList from './pages/CustomerList.jsx';
 import AddPackage from './pages/AddPackage.jsx';
 import PackageList from './pages/PackageList.jsx';
+import AddClass from './pages/AddClass.jsx';
+import ClassList from './pages/ClassList.jsx';
 import Accounts from './pages/Accounts.jsx';
 
 export default function App() {
@@ -48,6 +50,11 @@ export default function App() {
             <Route path="/" element={<Layout />}>
               {/* `index` is the route for the parent's own path, here "/". */}
               <Route index element={<Home />} />
+
+              {/* UC2 - the schedule. Readable by both roles: the server
+                  narrows it to an instructor's own classes (UC6 step 2),
+                  so the same screen serves both. */}
+              <Route path="classes" element={<ClassList />} />
 
               {/* Manager-only screens. UC1, UC3 and UC4 all name the Manager
                   as their actor, and account management is the manager's by
@@ -68,6 +75,9 @@ export default function App() {
                 {/* UC3 - Add a package. */}
                 <Route path="packages/new" element={<AddPackage />} />
                 <Route path="packages" element={<PackageList />} />
+
+                {/* UC2 - Add a class. */}
+                <Route path="classes/new" element={<AddClass />} />
 
                 {/* Part 2: sign-in accounts (design decision 12). */}
                 <Route path="accounts" element={<Accounts />} />
