@@ -15,10 +15,22 @@ import {
   listInstructors,
   getInstructor,
 } from '../controllers/instructorController.js';
+import { requireRole } from '../middleware/auth.js';
 
 // A Router is a mini Express app. server.js mounts it at /api/instructors,
 // so the paths below are relative to that prefix.
 const router = express.Router();
+
+/**
+ * UC1's actor is the Manager, so every instructor endpoint is manager-only.
+ * server.js has already applied requireAuth to this router, so req.user is
+ * set by the time this runs.
+ *
+ * `router.use` with no path applies to every route in the file — the right
+ * tool when the answer is the same for all of them, rather than repeating
+ * the middleware on each line.
+ */
+router.use(requireRole('manager'));
 
 // GET /api/instructors/check-name?firstName=Ann&lastName=Lee  (UC1 step 2)
 //

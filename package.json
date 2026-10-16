@@ -14,12 +14,15 @@
     "dev:all": "concurrently -n server,client -c blue,green \"npm run dev\" \"npm run client\"",
     "build": "npm ci --prefix client --include=dev && npm run build --prefix client",
     "heroku-postbuild": "npm run build",
-    "seed:packages": "node server/scripts/seedPackages.js"
+    "seed:packages": "node server/scripts/seedPackages.js",
+    "create:manager": "node server/scripts/createManager.js"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.20.1"
   },
   "devDependencies": {

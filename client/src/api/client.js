@@ -11,6 +11,23 @@
  * everywhere, rather than opening a connection inline in each class.
  */
 
+import { getToken, clearToken } from './session.js';
+
+/**
+ * Called when the server rejects the token (401). The AuthProvider registers
+ * itself here on mount, so a session that expires mid-use sends the user to
+ * the login screen immediately rather than showing an error on every page.
+ *
+ * A callback rather than an import of the provider: api/ must not depend on a
+ * React component, or the dependency runs in a circle.
+ */
+let onUnauthorized = null;
+
+/** @param {Function} handler - called with no arguments on any 401 */
+export function setUnauthorizedHandler(handler) {
+  onUnauthorized = handler;
+}
+
 /**
  * An error carrying the structured detail the Express API sends back.
  *
@@ -45,10 +62,16 @@ export async function request(path, options = {}) {
   // The path is relative ('/api/...') with no host name. In development Vite
   // proxies it to Express on port 5001; in production Express serves both the
   // UI and the API from the same origin. The same string works in both.
+  // The sign-in token, when there is one. "Bearer" is the standard scheme for
+  // "whoever holds this token is the user"; server/middleware/auth.js reads
+  // the other end of it. Attaching it here means no page has to remember to.
+  const token = getToken();
+
   const response = await fetch(path, {
     ...rest,
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...rest.headers,
     },
     // fetch needs a JSON string, not an object, so objects are serialised here
@@ -62,6 +85,21 @@ export async function request(path, options = {}) {
   const contentType = response.headers.get('content-type') || '';
   if (contentType.includes('application/json')) {
     payload = await response.json();
+  }
+
+  /**
+   * 401 means the token is missing, altered or expired. Whatever the page was
+   * doing, the only useful next step is to sign in again, so the token is
+   * discarded and the provider is told. The error is still thrown, so a page
+   * mid-save does not carry on as though it had succeeded.
+   *
+   * The login request itself is excluded: a wrong password also answers 401,
+   * and treating that as an expired session would wipe a token that is still
+   * perfectly good and bounce a signed-in manager out of the app.
+   */
+  if (response.status === 401 && path !== '/api/auth/login') {
+    clearToken();
+    if (onUnauthorized) onUnauthorized();
   }
 
   if (!response.ok) {

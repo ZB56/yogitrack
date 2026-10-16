@@ -23,6 +23,8 @@ import cors from 'cors';
 
 import { connectToDatabase } from './config/db.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
+import { requireAuth } from './middleware/auth.js';
+import authRoutes from './routes/authRoutes.js';
 import instructorRoutes from './routes/instructorRoutes.js';
 import customerRoutes from './routes/customerRoutes.js';
 import packageRoutes from './routes/packageRoutes.js';
@@ -65,14 +67,30 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Signing in, and the manager's account management (Part 2, decision 12).
+// Mounted WITHOUT requireAuth: /api/auth/login has to be reachable by someone
+// who is not signed in yet. The routes inside it apply the middleware
+// individually.
+app.use('/api/auth', authRoutes);
+
+/**
+ * Everything below is behind requireAuth, which rejects a request with no
+ * valid token before the router ever sees it. Listing it here, once per
+ * resource, makes "this resource needs a signed-in user" visible in one place.
+ *
+ * WHICH role may do what is decided inside each router, because it varies by
+ * endpoint: a manager may add a class, while an instructor may only read the
+ * classes they lead.
+ */
+
 // UC1 - Add an instructor
-app.use('/api/instructors', instructorRoutes);
+app.use('/api/instructors', requireAuth, instructorRoutes);
 
 // UC4 - Add a customer
-app.use('/api/customers', customerRoutes);
+app.use('/api/customers', requireAuth, customerRoutes);
 
 // UC3 - Add a package
-app.use('/api/packages', packageRoutes);
+app.use('/api/packages', requireAuth, packageRoutes);
 
 /* ---------------------------------------------------------------------------
  * Production: serve the compiled React app

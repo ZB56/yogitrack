@@ -392,6 +392,64 @@ a { color: var(--sage-600); }
 .tile--soon { opacity: 0.6; }
 
 /* ---------------------------------------------------------------------------
+ * Signed-in user, in the header (Part 2)
+ * ------------------------------------------------------------------------ */
+.session {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 0.85rem;
+  color: var(--ink-500);
+}
+.session__who {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 600;
+  color: var(--ink-700);
+}
+
+/* ---------------------------------------------------------------------------
+ * Login screen (Part 2)
+ *
+ * The one page with no header or navigation, so it centres its own card
+ * rather than sitting inside the usual page layout. min-height uses dvh
+ * ("dynamic viewport height") so the card stays centred on a phone when the
+ * browser's address bar slides in and out; plain vh jumps as it does.
+ * ------------------------------------------------------------------------ */
+.login {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+}
+.login__card {
+  width: 100%;
+  max-width: 26rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--space-6);
+}
+.login__brand {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--space-5);
+}
+.login__title { margin: 0 0 var(--space-2); font-size: 1.5rem; }
+.login__intro {
+  margin: 0 0 var(--space-5);
+  font-size: 0.9rem;
+  color: var(--ink-500);
+}
+/* The login form is a single column even on a wide screen: two columns would
+ * put the username and password side by side, which no one expects. */
+.login .form__actions { margin-top: var(--space-5); }
+.login .btn--primary { width: 100%; }
+
+/* ---------------------------------------------------------------------------
  * Wider screens
  * ------------------------------------------------------------------------ */
 @media (min-width: 640px) {
