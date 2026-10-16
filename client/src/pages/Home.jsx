@@ -45,6 +45,13 @@ const USE_CASES = [
     to: '/packages/new',
     roles: ['manager'],
   },
+  {
+    uc: 'UC5',
+    title: 'Record a sale',
+    desc: 'Sell a package and update the customer balance.',
+    to: '/sales/new',
+    roles: ['manager'],
+  },
 ];
 
 export default function Home() {

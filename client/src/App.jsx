@@ -32,6 +32,8 @@ import AddPackage from './pages/AddPackage.jsx';
 import PackageList from './pages/PackageList.jsx';
 import AddClass from './pages/AddClass.jsx';
 import ClassList from './pages/ClassList.jsx';
+import RecordSale from './pages/RecordSale.jsx';
+import SaleList from './pages/SaleList.jsx';
 import Accounts from './pages/Accounts.jsx';
 
 export default function App() {
@@ -78,6 +80,10 @@ export default function App() {
 
                 {/* UC2 - Add a class. */}
                 <Route path="classes/new" element={<AddClass />} />
+
+                {/* UC5 - Record a sale. */}
+                <Route path="sales/new" element={<RecordSale />} />
+                <Route path="sales" element={<SaleList />} />
 
                 {/* Part 2: sign-in accounts (design decision 12). */}
                 <Route path="accounts" element={<Accounts />} />

@@ -29,6 +29,7 @@ import instructorRoutes from './routes/instructorRoutes.js';
 import customerRoutes from './routes/customerRoutes.js';
 import packageRoutes from './routes/packageRoutes.js';
 import classRoutes from './routes/classRoutes.js';
+import saleRoutes from './routes/saleRoutes.js';
 
 // ES modules have no built-in __dirname (CommonJS did). This recreates it from
 // the module's own URL so paths below are relative to this file, not to the
@@ -95,6 +96,9 @@ app.use('/api/packages', requireAuth, packageRoutes);
 
 // UC2 - Add a class
 app.use('/api/classes', requireAuth, classRoutes);
+
+// UC5 - Record a sale
+app.use('/api/sales', requireAuth, saleRoutes);
 
 /* ---------------------------------------------------------------------------
  * Production: serve the compiled React app
