@@ -1755,13 +1755,18 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
 <p>The whole path from a commit to a release, with no manual step in it:</p>
 <pre><code>git push origin main
       │
-      ├─&gt; GitHub Actions runs .github/workflows/ci.yml
-      │     lint -&gt; build -&gt; boot against a real MongoDB -&gt; smoke tests
-      │
-      └─&gt; Heroku watches main, waits for that check to pass,
-            builds the slug and releases it to the dyno
+      └─&gt; GitHub Actions, .github/workflows/ci.yml
+            │
+            ├─ job 1  build-and-verify
+            │     lint -&gt; build -&gt; boot against a real MongoDB -&gt; smoke tests
+            │
+            └─ job 2  deploy          (needs: build-and-verify)
+                  git push to Heroku -&gt; poll the live health endpoint
 </code></pre>
-<p><code>.github/workflows/ci.yml</code> runs on every push and every pull request to <code>main</code>. Heroku is connected to the GitHub repository with automatic deploys enabled and &quot;wait for CI to pass before deploy&quot; turned on, so a commit that fails CI never reaches the dyno: the release simply does not happen, and the previous one keeps serving.</p>
+<p>Both jobs are in one workflow file, and <code>needs: build-and-verify</code> is the gate: if any check fails, the deploy job never runs and the previous release keeps serving. The deploy job is also limited to pushes to <code>main</code>, so a pull request is checked but never released.</p>
+<p><strong>Why the pipeline is in the repository rather than in Heroku&#x27;s dashboard.</strong> Heroku can watch a GitHub repository itself and deploy when a check passes, which is the arrangement Part 1 described. It was tried first here and did not work: with the integration enabled, a push that passed CI produced no release, and the repository showed neither a deployment nor a webhook from Heroku. A workflow file is the better answer regardless. It is version-controlled and reviewable, it lives next to the code it ships, and anyone reading the repository can see exactly what happens on a push, which is not true of a checkbox in somebody&#x27;s dashboard.</p>
+<p>The one thing deliberately not in the repository is the credential: <code>HEROKU_API_KEY</code> is a GitHub Actions secret, masked in the logs, and it is a token created for this purpose alone rather than an account password.</p>
+<p><strong>The deploy job does not trust its own push.</strong> A successful <code>git push</code> to Heroku only means the commit arrived; the slug still has to build and the dyno still has to boot. The last step polls the live health endpoint for up to 150 seconds, so a release that crashes on startup turns the pipeline red instead of passing quietly and leaving a broken site up.</p>
 <p>The job installs both halves of the project, lints and builds the React app, then boots the server against a throwaway MongoDB service container and exercises it over HTTP. What it checks, in the order it checks them:</p>
 <ul>
 <li>&lt;strong&gt;1.&lt;/strong&gt; the health endpoint answers, polled rather than slept on

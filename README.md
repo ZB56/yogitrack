@@ -226,9 +226,14 @@ Atlas cluster. What follows is the full setup, recorded so it can be repeated.
    ```
    `JWT_SECRET` is required in production: without it the server refuses to
    start, rather than signing tokens with something guessable.
-4. **Connect the pipeline** — in the Heroku dashboard, Deploy → GitHub, enable
-   automatic deploys from `main` and tick *Wait for CI to pass before deploy*.
-   `.github/workflows/ci.yml` is the check it waits on.
+4. **Connect the pipeline** — nothing to click. `.github/workflows/ci.yml`
+   has a `deploy` job that pushes to Heroku once the checks pass, so the
+   whole pipeline is in the repository. It needs one secret:
+   ```bash
+   heroku authorizations:create -d "GitHub Actions deploy" -S | gh secret set HEROKU_API_KEY
+   ```
+   (Heroku's own GitHub integration can do this from its dashboard instead,
+   but then the pipeline is a setting nobody can review.)
 5. **Create the first manager** on the deployed app, passing the password on
    the command line so it is never written to a file. Note the quotes around
    the whole command: `heroku run` takes ONE argument, and without them the
@@ -256,9 +261,11 @@ npm run build
 NODE_ENV=production JWT_SECRET=local-check npm start
 ```
 
-### Continuous integration
+### Continuous integration and delivery
 
-`.github/workflows/ci.yml` runs on every push and pull request to `main`. It
+`.github/workflows/ci.yml` holds the whole pipeline, in two jobs.
+
+**`build-and-verify`** runs on every push and pull request to `main`. It
 installs both halves of the project, lints and builds the React app, then
 boots the server against a throwaway MongoDB and checks that:
 
@@ -269,6 +276,13 @@ boots the server against a throwaway MongoDB and checks that:
 - a wrong password is refused with 401
 
 The account and the signing secret it uses exist only for that run.
+
+**`deploy`** then pushes `main` to Heroku and polls the live health endpoint
+until it answers. It carries `needs: build-and-verify`, so a failed check
+means no release and the previous one keeps serving, and it is limited to
+pushes, so a pull request is checked but never deployed. A successful push is
+not a successful release, which is why it waits for the dyno rather than
+assuming.
 
 ## Documentation
 

@@ -1,13 +1,24 @@
-# Continuous integration for YogiTrack.
+# Continuous integration and delivery for YogiTrack.
 #
-# Runs on every push and every pull request to main. The job installs both the
-# server and client dependencies, builds the React app, and boots the server
-# against a real MongoDB to confirm it actually starts and answers.
+# Two jobs, and the second only runs if the first passes:
 #
-# The point is that a broken commit is caught here rather than on Heroku, so
-# main stays in a releasable state. Deployment itself is configured in Heroku
-# (Deploy -> GitHub -> "Wait for CI to pass before deploy"), which is why this
-# file builds and verifies but does not push.
+#   build-and-verify  installs both halves, lints and builds the React app,
+#                     and boots the server against a real MongoDB to confirm
+#                     it starts, refuses anonymous requests, and answers for
+#                     a signed-in manager.
+#
+#   deploy            pushes main to Heroku and waits for the live site to
+#                     answer. Only on a push to main, never on a pull request.
+#
+# So a broken commit is caught here rather than on the dyno: `needs` means a
+# failed check leaves the previous release serving, because the deploy step
+# simply never runs.
+#
+# Why the pipeline lives here rather than in Heroku's own GitHub integration:
+# this file is in the repository, so the whole path from commit to release is
+# visible, reviewable and version-controlled along with the code. The one
+# thing not in the repository is the credential: HEROKU_API_KEY is a GitHub
+# Actions secret, and GitHub masks it in the logs.
 
 name: CI
 
@@ -134,3 +145,49 @@ jobs:
           fi
 
           echo "All checks passed."
+
+  deploy:
+    name: Deploy to Heroku
+    runs-on: ubuntu-latest
+
+    # The gate. Without this, a commit that fails the checks above would be
+    # released anyway, and CI would be decoration rather than a pipeline.
+    needs: build-and-verify
+
+    # Releases come from main only. A pull request is checked, never deployed.
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Check out the full history
+        uses: actions/checkout@v4
+        with:
+          # Heroku's git refuses a shallow push, and Actions clones shallow by
+          # default, so the whole history is needed here.
+          fetch-depth: 0
+
+      - name: Push to Heroku
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: |
+          set -euo pipefail
+          git push https://heroku:$HEROKU_API_KEY@git.heroku.com/yogitrack-zb.git HEAD:refs/heads/main
+
+      - name: Wait for the release to answer
+        run: |
+          set -euo pipefail
+
+          # A successful push is not a successful release: the slug still has
+          # to build and the dyno still has to boot. Poll the health endpoint
+          # rather than assume, so a release that crashes on startup turns
+          # this job red instead of passing quietly.
+          for i in $(seq 1 30); do
+            if curl -sf https://yogitrack-zb-9cc3ff17df1c.herokuapp.com/api/health > /dev/null; then
+              echo "The live site is answering."
+              exit 0
+            fi
+            echo "  waiting for the dyno... ($i)"
+            sleep 5
+          done
+
+          echo "The deployed application did not answer within 150 seconds."
+          exit 1

@@ -1478,18 +1478,39 @@ The whole path from a commit to a release, with no manual step in it:
 ```
 git push origin main
       │
-      ├─> GitHub Actions runs .github/workflows/ci.yml
-      │     lint -> build -> boot against a real MongoDB -> smoke tests
-      │
-      └─> Heroku watches main, waits for that check to pass,
-            builds the slug and releases it to the dyno
+      └─> GitHub Actions, .github/workflows/ci.yml
+            │
+            ├─ job 1  build-and-verify
+            │     lint -> build -> boot against a real MongoDB -> smoke tests
+            │
+            └─ job 2  deploy          (needs: build-and-verify)
+                  git push to Heroku -> poll the live health endpoint
 ```
 
-`.github/workflows/ci.yml` runs on every push and every pull request to
-`main`. Heroku is connected to the GitHub repository with automatic deploys
-enabled and "wait for CI to pass before deploy" turned on, so a commit that
-fails CI never reaches the dyno: the release simply does not happen, and the
-previous one keeps serving.
+Both jobs are in one workflow file, and `needs: build-and-verify` is the gate:
+if any check fails, the deploy job never runs and the previous release keeps
+serving. The deploy job is also limited to pushes to `main`, so a pull request
+is checked but never released.
+
+**Why the pipeline is in the repository rather than in Heroku's dashboard.**
+Heroku can watch a GitHub repository itself and deploy when a check passes,
+which is the arrangement Part 1 described. It was tried first here and did not
+work: with the integration enabled, a push that passed CI produced no release,
+and the repository showed neither a deployment nor a webhook from Heroku. A
+workflow file is the better answer regardless. It is version-controlled and
+reviewable, it lives next to the code it ships, and anyone reading the
+repository can see exactly what happens on a push, which is not true of a
+checkbox in somebody's dashboard.
+
+The one thing deliberately not in the repository is the credential:
+`HEROKU_API_KEY` is a GitHub Actions secret, masked in the logs, and it is a
+token created for this purpose alone rather than an account password.
+
+**The deploy job does not trust its own push.** A successful `git push` to
+Heroku only means the commit arrived; the slug still has to build and the dyno
+still has to boot. The last step polls the live health endpoint for up to 150
+seconds, so a release that crashes on startup turns the pipeline red instead
+of passing quietly and leaving a broken site up.
 
 The job installs both halves of the project, lints and builds the React app,
 then boots the server against a throwaway MongoDB service container and
