@@ -39,24 +39,40 @@ attendance, and reports. It must be built on the **MERN stack**.
 - VSCode as the editor
 
 ## Plan
-- **Part 1 (due Sunday, Week 4, 11:59 pm CT):** all three use cases are
-  **done** — Add Instructor (UC1), Add Customer (UC4), Add Package (UC3).
-  Report and UML models are written (`docs/11-project-report.md`,
-  `docs/10-uml-models.md`). Deployment files are committed (Procfile,
-  app.json, .github/workflows/ci.yml) and the production build is verified
-  locally, but the GitHub, Atlas and Heroku accounts are not yet created.
-- **Part 2 (due Friday, Week 8, 11:59 pm CT):** Add Class (UC2), Record Sale
-  (UC5), Record Attendance (UC6), Reports (UC7), plus modify/delete for the
-  Part 1 entities and real message delivery.
+- **Part 1 (submitted, 25/25):** UC1 Add Instructor, UC4 Add Customer, UC3
+  Add Package, deployed to Heroku with a GitHub repo and CI. Feedback from
+  the instructor: liked the response time; "for the final submission have
+  authentication implemented".
+- **Part 2 (due Friday, Week 8, 11:59 pm CT): all seven use cases are now
+  implemented.** Part 2 added UC2 Add Class (schedule conflict and suggested
+  slots), UC5 Record Sale, UC6 Record Attendance, UC7's four reports as
+  MongoDB aggregations, and authentication with roles (decision 12), which is
+  what the Part 1 feedback asked for.
+
+Scope decisions the developer made for Part 2, deliberately:
+- Still **add-only**: no modify or delete. No written use case asks for them,
+  and by Part 2 the referential-integrity problem is real. Decision 9.
+- The **diagram-only** use cases (Publish/View Schedule, View Attendance) are
+  out of scope: there is no written specification to build against.
+  Decision 10.
+- Only the **four written UC7 reports**, not the diagram's different five.
+  Decision 11.
+- Messaging is still a **logging stub**: real delivery needs a paid provider
+  account. Decision 3.
 
 See `docs/05-build-plan.md`, `docs/06-data-model.md`, and
-`docs/07-design-decisions.md` for detail. Decisions 1-4, 6-9 and 13-15 are
-settled; 5, 10, 11 and 12 are still OPEN and all are Part 2 concerns. Ask
-before assuming on those.
+`docs/07-design-decisions.md` for detail. All 18 decisions are now settled;
+read the reasoning before changing any of them.
 
 Local MongoDB is NOT a Homebrew service on this machine (Homebrew is blocked
 by outdated Command Line Tools). It runs from unpacked binaries outside the
 repo; the start command is in the README.
+
+Authentication: every API route except `/api/health` and `/api/auth/login`
+needs a bearer token. Locally, `.env` holds `JWT_SECRET` and the test manager
+login; `npm run create:manager` creates or resets a manager account from
+environment variables. Never put a password in a file that is not git-ignored,
+and never in a commit message or a log line.
 
 The report is built with `python3 tools/build-report.py`, which regenerates
 `docs/project-report.html` from the Markdown source. Re-run it after editing
@@ -67,6 +83,7 @@ numbering (UC1/UC4 are seven steps, with the duplicate-name prompt as sub-step
 2a). Do not renumber them; a grader may check them against the source.
 
 `npm run seed:packages` loads the studio's seven real packages from Fig. 2.
+`npm run lint --prefix client` should stay clean; CI runs it.
 
 ## Structure and scope notes
 - The course prescribes no folder structure and no starter code. Follow
@@ -74,8 +91,10 @@ numbering (UC1/UC4 are seven steps, with the duplicate-name prompt as sub-step
 - The course use-case diagram is in `docs/08-use-case-diagram.md` (image:
   `docs/fig5-use-case-diagram.png`). It is broader than the written use cases
   (Add/Modify/Delete rather than Add, extra view/publish use cases, a different
-  report list, two actors with no auth spec). Those gaps are OPEN decisions
-  9-12 in `docs/07-design-decisions.md`. Build the written specs first.
+  report list, two actors with no auth spec). Those gaps are settled as
+  decisions 9-12 in `docs/07-design-decisions.md`: the written specifications
+  are what is built, authentication is real, and the rest is deliberately out
+  of scope with the reasoning recorded.
 
 ## Grading reminders (25 pts per part, 5 each)
 Use cases, tech-stack use, UI design (intuitive, responsive), code/GitHub
