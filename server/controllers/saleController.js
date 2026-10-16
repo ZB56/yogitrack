@@ -283,6 +283,7 @@ export async function createSale(req, res) {
     packageName: packageDoc.name,
     classesPurchased: packageDoc.unlimited ? null : packageDoc.numClasses,
     unlimited: packageDoc.unlimited,
+    classType: packageDoc.classType,
     amountPaid: paid,
     paymentMode,
     paidAt: paidTimestamp,

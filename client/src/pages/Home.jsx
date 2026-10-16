@@ -52,6 +52,13 @@ const USE_CASES = [
     to: '/sales/new',
     roles: ['manager'],
   },
+  {
+    uc: 'UC6',
+    title: 'Record attendance',
+    desc: 'Check customers in to a class and update their balances.',
+    to: '/attendance/new',
+    roles: ['manager', 'instructor'],
+  },
 ];
 
 export default function Home() {

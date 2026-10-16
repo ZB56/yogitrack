@@ -392,6 +392,47 @@ a { color: var(--sage-600); }
 .tile--soon { opacity: 0.6; }
 
 /* ---------------------------------------------------------------------------
+ * Attendance checklist (Part 2, UC6)
+ *
+ * A scrolling list of tick boxes rather than a multi-select: an instructor
+ * works down the room ticking names, and a multi-select on a phone is a
+ * usability trap (one stray tap clears every choice). max-height keeps a long
+ * customer list from pushing the Save button off the screen.
+ * ------------------------------------------------------------------------ */
+.checklist {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-height: 22rem;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.checklist__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  min-height: 44px;   /* the same comfortable touch target as a button */
+}
+.checklist__item:hover { background: var(--sage-50); }
+.checklist__item--checked { background: var(--sage-100); }
+
+.checklist__name { flex: 1; }
+
+/* The balance sits at the end of the row, so a column of them lines up and
+ * can be scanned without reading the names. */
+.checklist__balance {
+  font-size: 0.85rem;
+  text-align: right;
+}
+
+/* ---------------------------------------------------------------------------
  * Signed-in user, in the header (Part 2)
  * ------------------------------------------------------------------------ */
 .session {

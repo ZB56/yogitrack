@@ -34,6 +34,8 @@ import AddClass from './pages/AddClass.jsx';
 import ClassList from './pages/ClassList.jsx';
 import RecordSale from './pages/RecordSale.jsx';
 import SaleList from './pages/SaleList.jsx';
+import RecordAttendance from './pages/RecordAttendance.jsx';
+import AttendanceList from './pages/AttendanceList.jsx';
 import Accounts from './pages/Accounts.jsx';
 
 export default function App() {
@@ -57,6 +59,12 @@ export default function App() {
                   narrows it to an instructor's own classes (UC6 step 2),
                   so the same screen serves both. */}
               <Route path="classes" element={<ClassList />} />
+
+              {/* UC6 - Record class attendance. The instructor's use case;
+                  a manager may also file a sheet, and the server limits an
+                  instructor to the classes they lead. */}
+              <Route path="attendance/new" element={<RecordAttendance />} />
+              <Route path="attendance" element={<AttendanceList />} />
 
               {/* Manager-only screens. UC1, UC3 and UC4 all name the Manager
                   as their actor, and account management is the manager's by

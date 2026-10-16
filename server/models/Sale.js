@@ -80,6 +80,24 @@ const saleSchema = new mongoose.Schema(
     },
 
     /**
+     * Which classes this purchase admits its holder to, copied from the
+     * package. A 'General' purchase covers General classes; a 'Special' one
+     * covers only classes marked Special.
+     *
+     * Snapshotted for the same reason as the rest: UC6 asks "was this
+     * customer entitled to be in that class on that date", and the answer
+     * must not change because the package was edited afterwards.
+     */
+    classType: {
+      type: String,
+      required: [true, 'Class type is required.'],
+      enum: {
+        values: ['General', 'Special'],
+        message: 'Class type must be either General or Special.',
+      },
+    },
+
+    /**
      * What the customer actually paid.
      *
      * UC5 step 4 requires this to match the package rate, which the

@@ -20,6 +20,7 @@ const PREFIXES = {
   package: 'P',
   class: 'L', // "cLass" — C is already taken by customer
   sale: 'S',
+  attendance: 'A', // one per sheet, so a class occurrence can be named
 };
 
 // Width of the zero-padded number. 5 digits matches the I00123 example in the
