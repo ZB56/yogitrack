@@ -1415,9 +1415,12 @@ first manager account is created by a one-off command that reads the password
 from the environment:
 
 ```bash
-heroku run -a <app> MANAGER_USERNAME=studio MANAGER_PASSWORD='...' \
-  npm run create:manager
+heroku run -a <app> "MANAGER_USERNAME=studio MANAGER_PASSWORD='...' npm run create:manager"
 ```
+
+The quotes matter: `heroku run` takes the command as a single argument, so
+without them the CLI splits on the spaces and the dyno tries to execute
+`MANAGER_USERNAME=studio` as a program. Found by running it.
 
 ### 11.1 Deployment status: live
 

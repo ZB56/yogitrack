@@ -230,11 +230,12 @@ Atlas cluster. What follows is the full setup, recorded so it can be repeated.
    automatic deploys from `main` and tick *Wait for CI to pass before deploy*.
    `.github/workflows/ci.yml` is the check it waits on.
 5. **Create the first manager** on the deployed app, passing the password on
-   the command line so it is never written to a file:
+   the command line so it is never written to a file. Note the quotes around
+   the whole command: `heroku run` takes ONE argument, and without them the
+   CLI splits on the spaces and the dyno tries to run `MANAGER_USERNAME=...`
+   as a program.
    ```bash
-   heroku run -a <app-name> \
-     MANAGER_USERNAME=studio MANAGER_PASSWORD='choose-a-long-one' \
-     npm run create:manager
+   heroku run -a <app-name> "MANAGER_USERNAME=studio MANAGER_PASSWORD='choose-a-long-one' npm run create:manager"
    ```
 
 What is already committed: `Procfile`, `app.json`, the `heroku-postbuild`

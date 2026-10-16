@@ -1727,9 +1727,9 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
 </code></pre>
 <p>process, which keeps local setup to one step and makes the weaker case obvious, since restarting signs everyone out.</p>
 <p><strong>Passwords are not stored at all.</strong> Only a bcrypt hash is, and the hash is excluded from every query result except the one the sign-in code runs. The first manager account is created by a one-off command that reads the password from the environment:</p>
-<pre><code>heroku run -a &lt;app&gt; MANAGER_USERNAME=studio MANAGER_PASSWORD=&#x27;...&#x27; \
-  npm run create:manager
+<pre><code>heroku run -a &lt;app&gt; &quot;MANAGER_USERNAME=studio MANAGER_PASSWORD=&#x27;...&#x27; npm run create:manager&quot;
 </code></pre>
+<p>The quotes matter: <code>heroku run</code> takes the command as a single argument, so without them the CLI splits on the spaces and the dyno tries to execute <code>MANAGER_USERNAME=studio</code> as a program. Found by running it.</p>
 <h3 id="11-1-deployment-status-live">11.1 Deployment status: live</h3>
 <p>The application is deployed and serving requests:</p>
 <table><thead><tr><th>Component</th><th>Status</th></tr></thead><tbody>
