@@ -36,6 +36,7 @@ import RecordSale from './pages/RecordSale.jsx';
 import SaleList from './pages/SaleList.jsx';
 import RecordAttendance from './pages/RecordAttendance.jsx';
 import AttendanceList from './pages/AttendanceList.jsx';
+import Reports from './pages/Reports.jsx';
 import Accounts from './pages/Accounts.jsx';
 
 export default function App() {
@@ -92,6 +93,9 @@ export default function App() {
                 {/* UC5 - Record a sale. */}
                 <Route path="sales/new" element={<RecordSale />} />
                 <Route path="sales" element={<SaleList />} />
+
+                {/* UC7 - Studio reports. */}
+                <Route path="reports" element={<Reports />} />
 
                 {/* Part 2: sign-in accounts (design decision 12). */}
                 <Route path="accounts" element={<Accounts />} />

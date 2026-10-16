@@ -37,6 +37,7 @@ const NAV_ITEMS = [
   { to: '/sales', label: 'Sales', roles: ['manager'] },
   { to: '/attendance/new', label: 'Take Attendance', roles: ['manager', 'instructor'] },
   { to: '/attendance', label: 'Attendance', roles: ['manager', 'instructor'] },
+  { to: '/reports', label: 'Reports', roles: ['manager'] },
   { to: '/accounts', label: 'Accounts', roles: ['manager'] },
 ];
 
