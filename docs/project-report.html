@@ -62,6 +62,16 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
 <h1 id="yogitrack-project-report-part-2">YogiTrack: Project Report, Part 2</h1>
 <p><strong>Course:</strong> ACS 5423, Software Development for World Wide Web <strong>Institution:</strong> University of Oklahoma <strong>Application:</strong> YogiTrack, a record-keeping system for the Yoga H&#x27;om studio <strong>Increment:</strong> Application 2.0 (Part 2), the final submission <strong>Technology stack:</strong> MongoDB · Express · React · Node.js (MERN) <strong>Live application:</strong> https://yogitrack-zb-9cc3ff17df1c.herokuapp.com <strong>Repository:</strong> https://github.com/ZB56/yogitrack</p>
 <p>This report supersedes the Part 1 report. It describes the whole application, with the Part 2 work marked throughout, so it can be read on its own.</p>
+<h2 id="signing-in-to-the-live-application">Signing in to the live application</h2>
+<p>Part 2 added authentication, so the application asks who you are before it shows anything. Please use this account:</p>
+<table><thead><tr><th></th><th></th></tr></thead><tbody>
+<tr><td><strong>Address</strong></td><td>https://yogitrack-zb-9cc3ff17df1c.herokuapp.com</td></tr>
+<tr><td><strong>Username</strong></td><td><code>studio</code></td></tr>
+<tr><td><strong>Password</strong></td><td><code>your-real-password</code></td></tr>
+<tr><td><strong>Role</strong></td><td>Manager, which can reach every screen</td></tr>
+</tbody></table>
+<p>The studio manager is the actor for six of the seven use cases (UC1 to UC5 and UC7), so this account demonstrates all of them. The seventh, UC6 &quot;Record class attendance&quot;, belongs to the Instructor actor; this manager account can reach that screen as well, and the <strong>Accounts</strong> screen creates an instructor login if you would like to see the application as an instructor sees it, with the navigation, the home screen and the class list all narrowed to that one person&#x27;s own classes.</p>
+<p>There is no sign-up page, by design: accounts are created by a manager, and the reasoning is in section 4.8.</p>
 <h2 id="1-executive-summary">1. Executive summary</h2>
 <p>Yoga H&#x27;om runs its studio on paper: a card per customer for classes bought and attended, and a signed sheet per class. That process does not scale and cannot answer questions like &quot;how much do we owe each instructor this month?&quot; without manual tallying.</p>
 <p>YogiTrack replaces those records with a web application. <strong>All seven use cases from the course specification are implemented</strong>, and the application is deployed, with a GitHub repository and a CI pipeline that gates every release.</p>

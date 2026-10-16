@@ -13,8 +13,34 @@ with the Part 2 work marked throughout, so it can be read on its own.
 
 ---
 
+## Signing in to the live application
+
+Part 2 added authentication, so the application asks who you are before it
+shows anything. Please use this account:
+
+| | |
+|---|---|
+| **Address** | https://yogitrack-zb-9cc3ff17df1c.herokuapp.com |
+| **Username** | `studio` |
+| **Password** | `your-real-password` |
+| **Role** | Manager, which can reach every screen |
+
+The studio manager is the actor for six of the seven use cases (UC1 to UC5 and
+UC7), so this account demonstrates all of them. The seventh, UC6 "Record class
+attendance", belongs to the Instructor actor; this manager account can reach
+that screen as well, and the **Accounts** screen creates an instructor login if
+you would like to see the application as an instructor sees it, with the
+navigation, the home screen and the class list all narrowed to that one
+person's own classes.
+
+There is no sign-up page, by design: accounts are created by a manager, and the
+reasoning is in section 4.8.
+
+---
+
 ## Contents
 
+0. [Signing in to the live application](#signing-in-to-the-live-application)
 1. [Executive summary](#1-executive-summary)
 2. [Problem statement and background](#2-problem-statement-and-background)
 3. [Scope](#3-scope)
