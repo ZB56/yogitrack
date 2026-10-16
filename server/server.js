@@ -24,6 +24,7 @@ import cors from 'cors';
 import { connectToDatabase } from './config/db.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 import { requireAuth } from './middleware/auth.js';
+import { assertSecretConfigured } from './services/tokens.js';
 import authRoutes from './routes/authRoutes.js';
 import instructorRoutes from './routes/instructorRoutes.js';
 import customerRoutes from './routes/customerRoutes.js';
@@ -151,6 +152,12 @@ const PORT = process.env.PORT || 5001;
  */
 async function start() {
   try {
+    // Check the signing secret before anything else. In production a missing
+    // JWT_SECRET is a configuration mistake, and failing here means one clear
+    // line in the platform log rather than a stack trace, or worse, a running
+    // server handing out tokens signed with something predictable.
+    assertSecretConfigured();
+
     await connectToDatabase();
     app.listen(PORT, () => {
       console.log(`YogiTrack server listening on http://localhost:${PORT}`);

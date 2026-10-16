@@ -1398,9 +1398,14 @@ token secret are Heroku config vars. **No credential is committed at any
 point.**
 
 `JWT_SECRET` is treated as mandatory in production: with `NODE_ENV=production`
-and no secret, the server throws at startup rather than falling back to
+and no secret, the server refuses to start rather than falling back to
 something guessable, because a predictable signing key would let anyone mint
-their own manager token. In development a random secret is generated per
+their own manager token. It fails the same way a missing database URI does,
+as one line in the platform log that names the cause:
+
+```
+Failed to start server: JWT_SECRET is not set. Set it as a config var before starting in production.
+``` In development a random secret is generated per
 process, which keeps local setup to one step and makes the weaker case
 obvious, since restarting signs everyone out.
 

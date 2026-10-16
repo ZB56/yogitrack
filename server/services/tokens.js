@@ -63,10 +63,35 @@ function resolveSecret() {
   return generated;
 }
 
-// Resolved once, when this module is first imported, rather than on every
-// call — otherwise each request would generate a different development secret
-// and no token would ever verify.
-const SECRET = resolveSecret();
+/**
+ * The secret, resolved once and then remembered.
+ *
+ * Lazy rather than resolved at import time, for one reason: a missing secret
+ * in production has to be reported the way a missing database URI is, as
+ * "Failed to start server: ..." on a single line, not as an unhandled module
+ * exception with a stack trace above it. server.js calls
+ * assertSecretConfigured() inside its startup try/catch, so the failure
+ * arrives there and the log line on the platform names the cause.
+ *
+ * It is still resolved only once. Resolving per call would hand out a
+ * different development secret every time, and no token would ever verify.
+ */
+let cachedSecret = null;
+
+function secret() {
+  if (cachedSecret === null) {
+    cachedSecret = resolveSecret();
+  }
+  return cachedSecret;
+}
+
+/**
+ * Fail now if the configuration is wrong, rather than on the first sign-in.
+ * Called by server.js before it starts listening.
+ */
+export function assertSecretConfigured() {
+  secret();
+}
 
 /**
  * Create a token for a signed-in user.
@@ -87,7 +112,7 @@ export function issueToken(user) {
       role: user.role,
       instructorId: user.instructorId || null,
     },
-    SECRET,
+    secret(),
     { expiresIn: TOKEN_LIFETIME }
   );
 }
@@ -103,5 +128,5 @@ export function issueToken(user) {
  * @throws {Error} if the token is missing, altered or expired
  */
 export function verifyToken(token) {
-  return jwt.verify(token, SECRET);
+  return jwt.verify(token, secret());
 }
