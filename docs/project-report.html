@@ -1751,8 +1751,17 @@ backgrounds&rdquo; is enabled. This banner does not appear in the PDF.</div>
 </tbody></table>
 <p>A production smoke test against the live URL passed all nine checks at the Part 1 release: the health endpoint, creating an instructor, per-field validation, the duplicate <code>409</code>, creating a customer, creating a package, rejection of an invalid class count, a React deep link served correctly, and an unknown <code>/api</code> path still returning JSON rather than the single-page app.</p>
 <p>The Part 2 release adds one manual step that cannot be automated and should not be: creating the first manager account on the deployed application, with the password passed on the command line so that it is never written to a file in the repository or to a config var.</p>
-<h3 id="11-2-continuous-integration">11.2 Continuous integration</h3>
-<p><code>.github/workflows/ci.yml</code> runs on every push and every pull request to <code>main</code>. Heroku is configured to deploy automatically from <code>main</code> and to wait for that check, so a commit that fails CI never reaches the dyno.</p>
+<h3 id="11-2-continuous-integration-and-delivery">11.2 Continuous integration and delivery</h3>
+<p>The whole path from a commit to a release, with no manual step in it:</p>
+<pre><code>git push origin main
+      │
+      ├─&gt; GitHub Actions runs .github/workflows/ci.yml
+      │     lint -&gt; build -&gt; boot against a real MongoDB -&gt; smoke tests
+      │
+      └─&gt; Heroku watches main, waits for that check to pass,
+            builds the slug and releases it to the dyno
+</code></pre>
+<p><code>.github/workflows/ci.yml</code> runs on every push and every pull request to <code>main</code>. Heroku is connected to the GitHub repository with automatic deploys enabled and &quot;wait for CI to pass before deploy&quot; turned on, so a commit that fails CI never reaches the dyno: the release simply does not happen, and the previous one keeps serving.</p>
 <p>The job installs both halves of the project, lints and builds the React app, then boots the server against a throwaway MongoDB service container and exercises it over HTTP. What it checks, in the order it checks them:</p>
 <ul>
 <li>&lt;strong&gt;1.&lt;/strong&gt; the health endpoint answers, polled rather than slept on

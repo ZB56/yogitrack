@@ -1471,11 +1471,25 @@ not be: creating the first manager account on the deployed application, with
 the password passed on the command line so that it is never written to a file
 in the repository or to a config var.
 
-### 11.2 Continuous integration
+### 11.2 Continuous integration and delivery
+
+The whole path from a commit to a release, with no manual step in it:
+
+```
+git push origin main
+      │
+      ├─> GitHub Actions runs .github/workflows/ci.yml
+      │     lint -> build -> boot against a real MongoDB -> smoke tests
+      │
+      └─> Heroku watches main, waits for that check to pass,
+            builds the slug and releases it to the dyno
+```
 
 `.github/workflows/ci.yml` runs on every push and every pull request to
-`main`. Heroku is configured to deploy automatically from `main` and to wait
-for that check, so a commit that fails CI never reaches the dyno.
+`main`. Heroku is connected to the GitHub repository with automatic deploys
+enabled and "wait for CI to pass before deploy" turned on, so a commit that
+fails CI never reaches the dyno: the release simply does not happen, and the
+previous one keeps serving.
 
 The job installs both halves of the project, lints and builds the React app,
 then boots the server against a throwaway MongoDB service container and
