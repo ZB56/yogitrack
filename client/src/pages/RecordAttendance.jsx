@@ -84,10 +84,10 @@ export default function RecordAttendance() {
    * filed against a Monday class, and who is about to go into the negative.
    */
   useEffect(() => {
-    if (!classId || selected.length === 0) {
-      setPreview(null);
-      return undefined;
-    }
+    // Nothing to preview until a class and at least one attendee are
+    // chosen. The last answer is left in state rather than cleared inside
+    // the effect; `livePreview` below is what decides whether to use it.
+    if (!classId || selected.length === 0) return undefined;
 
     let ignore = false;
 
@@ -189,6 +189,9 @@ export default function RecordAttendance() {
 
   const chosenClass = classes.find((item) => item.classId === classId);
 
+  // The preview is only meaningful while there is something to preview.
+  const livePreview = classId && selected.length > 0 ? preview : null;
+
   return (
     <>
       <div className="page-header">
@@ -231,9 +234,9 @@ export default function RecordAttendance() {
       )}
 
       {/* UC6 step 5. A warning, because a class can legitimately be moved. */}
-      {preview?.scheduleWarning && (
+      {livePreview?.scheduleWarning && (
         <Alert variant="warning" title="Date does not match the schedule">
-          <p>{preview.scheduleWarning}</p>
+          <p>{livePreview.scheduleWarning}</p>
         </Alert>
       )}
 
@@ -348,7 +351,7 @@ export default function RecordAttendance() {
 
               {visibleCustomers.map((customer) => {
                 // What the preview says this person's check-in will do.
-                const assessment = preview?.attendees.find(
+                const assessment = livePreview?.attendees.find(
                   (entry) => entry.customerId === customer.customerId
                 );
 

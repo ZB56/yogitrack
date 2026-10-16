@@ -53,28 +53,44 @@ export default function Accounts() {
   const [result, setResult] = useState(null);
 
   /**
+   * Bumped after an account is created, which re-runs the effect below.
+   *
+   * A counter rather than calling a load() function from the submit handler
+   * directly: it keeps every fetch inside the effect, where the cleanup
+   * function can ignore a response that arrives after the screen has gone.
+   */
+  const [reloadKey, setReloadKey] = useState(0);
+
+  /**
    * Load both lists. Promise.all runs the two requests at the same time
-   * rather than waiting for the first to finish — they do not depend on each
+   * rather than waiting for the first to finish: they do not depend on each
    * other, so there is no reason to pay for both round trips in sequence.
    */
-  async function load() {
-    try {
-      const [accountData, instructorData] = await Promise.all([
-        listUsers(),
-        listInstructors(),
-      ]);
-      setUsers(accountData.users);
-      setInstructors(instructorData.instructors);
-      setStatus('ready');
-    } catch (caught) {
-      setLoadError(caught.message);
-      setStatus('error');
-    }
-  }
-
   useEffect(() => {
+    let ignore = false;
+
+    async function load() {
+      try {
+        const [accountData, instructorData] = await Promise.all([
+          listUsers(),
+          listInstructors(),
+        ]);
+        if (ignore) return;
+        setUsers(accountData.users);
+        setInstructors(instructorData.instructors);
+        setStatus('ready');
+      } catch (caught) {
+        if (ignore) return;
+        setLoadError(caught.message);
+        setStatus('error');
+      }
+    }
+
     load();
-  }, []);
+    return () => {
+      ignore = true;
+    };
+  }, [reloadKey]);
 
   // Instructors with no account yet: the only ones worth offering.
   const linkedIds = new Set(users.map((user) => user.instructorId).filter(Boolean));
@@ -134,7 +150,7 @@ export default function Accounts() {
       setResult(response);
       setValues(EMPTY_FORM);
       setErrors({});
-      await load(); // refresh the table so the new account appears
+      setReloadKey((key) => key + 1); // re-runs the effect above
     } catch (error) {
       if (error.fields) {
         setErrors(error.fields);

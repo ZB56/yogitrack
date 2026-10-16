@@ -119,10 +119,10 @@ export default function AddClass() {
    * have already moved away from.
    */
   useEffect(() => {
-    if (!values.day || !values.time) {
-      setConflict(null);
-      return undefined;
-    }
+    // Nothing to ask about yet. The answer already held is not cleared
+    // here: clearing state inside an effect schedules an extra render for
+    // no benefit. `hasConflict` below ignores it until a slot is chosen.
+    if (!values.day || !values.time) return undefined;
 
     let ignore = false;
 
@@ -218,7 +218,7 @@ export default function AddClass() {
     }
   }
 
-  const hasConflict = Boolean(conflict?.conflict);
+  const hasConflict = Boolean(values.day && values.time && conflict?.conflict);
 
   return (
     <>

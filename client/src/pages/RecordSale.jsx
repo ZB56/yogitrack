@@ -97,10 +97,10 @@ export default function RecordSale() {
    * look like and fill the form in with the answer.
    */
   useEffect(() => {
-    if (!values.customerId || !values.packageId) {
-      setQuote(null);
-      return undefined;
-    }
+    // Nothing to quote until both are chosen. The previous answer is left
+    // in state rather than cleared here, and the panel below is shown only
+    // when the selection is complete.
+    if (!values.customerId || !values.packageId) return undefined;
 
     let ignore = false;
 
@@ -296,7 +296,7 @@ export default function RecordSale() {
             {/* What the system already knows, shown before the manager
                 commits to it. The package's own type matters: a Special
                 package only admits its holder to Special classes. */}
-            {quote && (
+            {values.customerId && values.packageId && quote && (
               <div className="message-preview">
                 <span className="message-preview__channel">This sale</span>
                 <p>

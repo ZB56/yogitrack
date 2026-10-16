@@ -51,9 +51,24 @@ const TABS = [
 export default function Reports() {
   const [tab, setTab] = useState('package-sales');
   const [month, setMonth] = useState(currentMonth);
-  const [data, setData] = useState(null);
   const [status, setStatus] = useState('loading'); // loading | ready | error
   const [error, setError] = useState(null);
+
+  /**
+   * The loaded report, tagged with the tab it belongs to.
+   *
+   * Storing the payload on its own looked simpler and was wrong. State set
+   * inside an effect does not apply until after the render that scheduled
+   * it, so for one frame after a tab is clicked the NEW tab would render
+   * against the OLD report's rows. The four reports have four different
+   * shapes, so that frame read fields that were not there: React warned
+   * about missing keys, and `row.classes.length` would have thrown outright
+   * on a row from the sales report.
+   *
+   * Keeping the tab name alongside the data makes the mismatch impossible to
+   * render: the check below is `report.tab === tab`.
+   */
+  const [report, setReport] = useState(null);
 
   /**
    * Fetch whichever report is open. Re-runs when the tab changes, and when
@@ -64,7 +79,7 @@ export default function Reports() {
 
     async function load() {
       setStatus('loading');
-      setData(null);
+      setReport(null);
 
       try {
         let answer;
@@ -74,7 +89,7 @@ export default function Reports() {
         else answer = await teacherPaymentReport(month);
 
         if (!ignore) {
-          setData(answer);
+          setReport({ tab, payload: answer });
           setStatus('ready');
         }
       } catch (caught) {
@@ -90,6 +105,10 @@ export default function Reports() {
       ignore = true;
     };
   }, [tab, month]);
+
+  // Only true when the loaded report is the one the open tab asks for.
+  const ready = status === 'ready' && report?.tab === tab;
+  const payload = report?.payload;
 
   return (
     <>
@@ -129,15 +148,15 @@ export default function Reports() {
       {/* ----------------------------------------------------------------
           Report 1: package sales
           ---------------------------------------------------------------- */}
-      {status === 'ready' && tab === 'package-sales' && (
+      {ready && tab === 'package-sales' && (
         <>
           <p className="report-summary">
-            {data.totals.unitsSold} package
-            {data.totals.unitsSold === 1 ? '' : 's'} sold,{' '}
-            {formatMoney(data.totals.revenue)} in total.
+            {payload.totals.unitsSold} package
+            {payload.totals.unitsSold === 1 ? '' : 's'} sold,{' '}
+            {formatMoney(payload.totals.revenue)} in total.
           </p>
 
-          {data.rows.length === 0 ? (
+          {payload.rows.length === 0 ? (
             <div className="empty-state">
               <p>No sales have been recorded yet.</p>
             </div>
@@ -155,7 +174,7 @@ export default function Reports() {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.rows.map((row) => (
+                  {payload.rows.map((row) => (
                     <tr key={row.packageId}>
                       <td>
                         {row.packageName}
@@ -171,8 +190,8 @@ export default function Reports() {
                 <tfoot>
                   <tr>
                     <th scope="row">Total</th>
-                    <td className="table__id">{data.totals.unitsSold}</td>
-                    <td className="table__id">{formatMoney(data.totals.revenue)}</td>
+                    <td className="table__id">{payload.totals.unitsSold}</td>
+                    <td className="table__id">{formatMoney(payload.totals.revenue)}</td>
                     <td colSpan="2" />
                   </tr>
                 </tfoot>
@@ -185,7 +204,7 @@ export default function Reports() {
       {/* ----------------------------------------------------------------
           Report 2: instructors, their classes and their check-ins
           ---------------------------------------------------------------- */}
-      {status === 'ready' && tab === 'instructors' && (
+      {ready && tab === 'instructors' && (
         <div className="table-wrap">
           <table className="table">
             <caption className="visually-hidden">Instructors</caption>
@@ -198,7 +217,7 @@ export default function Reports() {
               </tr>
             </thead>
             <tbody>
-              {data.rows.map((row) => (
+              {payload.rows.map((row) => (
                 <tr key={row.instructorId}>
                   <td>
                     {row.fullName}
@@ -231,13 +250,13 @@ export default function Reports() {
       {/* ----------------------------------------------------------------
           Report 3: customers and their packages
           ---------------------------------------------------------------- */}
-      {status === 'ready' && tab === 'customers' && (
+      {ready && tab === 'customers' && (
         <>
           <p className="report-summary">
-            {data.summary.customers} customers, {data.summary.withActivePackage} with
+            {payload.summary.customers} customers, {payload.summary.withActivePackage} with
             an active package
-            {data.summary.negativeBalances > 0 &&
-              `, ${data.summary.negativeBalances} with a negative balance`}
+            {payload.summary.negativeBalances > 0 &&
+              `, ${payload.summary.negativeBalances} with a negative balance`}
             .
           </p>
 
@@ -252,7 +271,7 @@ export default function Reports() {
                 </tr>
               </thead>
               <tbody>
-                {data.rows.map((row) => (
+                {payload.rows.map((row) => (
                   <tr key={row.customerId}>
                     <td>
                       {row.fullName}
@@ -317,23 +336,23 @@ export default function Reports() {
         </div>
       )}
 
-      {status === 'ready' && tab === 'teacher-payments' && (
+      {ready && tab === 'teacher-payments' && (
         <>
           <p className="report-summary">
-            {data.monthLabel}: {data.totals.classesHeld} classes held,{' '}
-            {data.totals.checkIns} check-ins,{' '}
-            {formatMoney(data.totals.amountDue)} due.
+            {payload.monthLabel}: {payload.totals.classesHeld} classes held,{' '}
+            {payload.totals.checkIns} check-ins,{' '}
+            {formatMoney(payload.totals.amountDue)} due.
           </p>
 
-          {data.rows.length === 0 ? (
+          {payload.rows.length === 0 ? (
             <div className="empty-state">
-              <p>No classes were held in {data.monthLabel}.</p>
+              <p>No classes were held in {payload.monthLabel}.</p>
             </div>
           ) : (
             <div className="table-wrap">
               <table className="table">
                 <caption className="visually-hidden">
-                  Teacher payment for {data.monthLabel}
+                  Teacher payment for {payload.monthLabel}
                 </caption>
                 <thead>
                   <tr>
@@ -344,7 +363,7 @@ export default function Reports() {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.rows.map((row) => (
+                  {payload.rows.map((row) => (
                     <tr key={row.instructorId}>
                       <td>
                         {row.fullName}
@@ -359,9 +378,9 @@ export default function Reports() {
                 <tfoot>
                   <tr>
                     <th scope="row">Total</th>
-                    <td className="table__id">{data.totals.classesHeld}</td>
-                    <td className="table__id">{data.totals.checkIns}</td>
-                    <td className="table__id">{formatMoney(data.totals.amountDue)}</td>
+                    <td className="table__id">{payload.totals.classesHeld}</td>
+                    <td className="table__id">{payload.totals.checkIns}</td>
+                    <td className="table__id">{formatMoney(payload.totals.amountDue)}</td>
                   </tr>
                 </tfoot>
               </table>

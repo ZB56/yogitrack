@@ -13,7 +13,8 @@
  * may use it, and the header shows who is signed in with a way to sign out.
  */
 
-import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { NavLink, Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 
 /**
@@ -55,8 +56,27 @@ const EXACT_MATCH_PATHS = [
 export default function Layout() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  /**
+   * Whether the menu is open on a narrow screen.
+   *
+   * Part 2 took the navigation from six entries to eleven, which on a phone
+   * filled five rows before any content appeared. Below 900px the links are
+   * now behind a Menu button; above it the state is ignored and the links
+   * are always shown, which is handled entirely in CSS.
+   */
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const visibleItems = NAV_ITEMS.filter((item) => item.roles.includes(user?.role));
+
+  // Close the menu whenever the page changes, so following a link on a phone
+  // does not leave the list covering what was just opened.
+  const [lastPath, setLastPath] = useState(location.pathname);
+  if (lastPath !== location.pathname) {
+    setLastPath(location.pathname);
+    if (menuOpen) setMenuOpen(false);
+  }
 
   function handleSignOut() {
     signOut();
@@ -70,14 +90,33 @@ export default function Layout() {
     <div className="app-shell">
       <header className="site-header">
         <div className="site-header__inner">
-          <Link to="/" className="brand">
-            <span className="brand__name">YogiTrack</span>
-            <span className="brand__tag">Yoga H&apos;om studio records</span>
-          </Link>
+          <div className="site-header__bar">
+            <Link to="/" className="brand">
+              <span className="brand__name">YogiTrack</span>
+              <span className="brand__tag">Yoga H&apos;om studio records</span>
+            </Link>
+
+            {/* Shown only below 900px (see index.css). aria-expanded tells a
+                screen reader whether the list it controls is open, and
+                aria-controls says which list that is. */}
+            <button
+              type="button"
+              className="nav-toggle"
+              aria-expanded={menuOpen}
+              aria-controls="main-nav"
+              onClick={() => setMenuOpen((open) => !open)}
+            >
+              {menuOpen ? 'Close' : 'Menu'}
+            </button>
+          </div>
 
           {/* <nav> rather than <div>: it tells a screen reader that this is
               the site navigation, and the aria-label names it. */}
-          <nav className="nav" aria-label="Main">
+          <nav
+            id="main-nav"
+            className={`nav${menuOpen ? ' nav--open' : ''}`}
+            aria-label="Main"
+          >
             {visibleItems.map((item) => (
               <NavLink
                 key={item.to}

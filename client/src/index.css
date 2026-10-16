@@ -130,11 +130,37 @@ a { color: var(--sage-600); }
 .brand__name { font-size: 1.15rem; font-weight: 600; letter-spacing: -0.01em; }
 .brand__tag  { font-size: 0.78rem; color: var(--ink-500); }
 
-.nav {
+/* The brand and the Menu button share a row on a phone; on a wide screen
+ * the button is hidden and this wrapper is just the brand. */
+.site-header__bar {
   display: flex;
-  flex-wrap: wrap;       /* links wrap onto a second line on a phone */
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.nav-toggle {
+  font: inherit;
+  font-weight: 500;
+  padding: var(--space-2) var(--space-4);
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink-700);
+  cursor: pointer;
+}
+.nav-toggle:hover { border-color: var(--sage-500); }
+
+/* Mobile first: eleven links would fill five rows before any content, so
+ * they are collapsed behind the Menu button and shown one per row when it is
+ * open. The 900px query below restores the horizontal row on a wide screen. */
+.nav {
+  display: none;
+  flex-direction: column;
   gap: var(--space-1);
 }
+.nav--open { display: flex; }
 
 .nav__link {
   padding: var(--space-2) var(--space-3);
@@ -560,6 +586,15 @@ a { color: var(--sage-600); }
   .site-header__inner { flex-direction: row; align-items: center; justify-content: space-between; }
   .tiles { grid-template-columns: repeat(3, 1fr); }
   .main { padding-top: var(--space-6); }
+
+  /* There is room for every link, so the Menu button has nothing to do and
+   * the list is always shown, whatever state the button was left in. */
+  .nav-toggle { display: none; }
+  .nav {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
 }
 
 /* Respect a reader who has asked their system to reduce motion. */
